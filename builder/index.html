@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Email Builder — Project Updates</title>
+  <style>
+    :root { --bg:#0b0c0e; --panel:#141414; --text:#e6e6e6; --muted:#a0a6ad; --accent:#00bcd4; --border:#242424; }
+    * { box-sizing: border-box; }
+    body { margin:0; font-family: Segoe UI, Roboto, Arial, sans-serif; background:var(--bg); color:var(--text); }
+    header { padding:16px 20px; border-bottom:1px solid var(--border); background:#0e0f12; position:sticky; top:0; z-index:10; }
+    header h1 { margin:0; font-size:16px; letter-spacing:.3px; color:#cfd5db; }
+    main { max-width: 1080px; margin: 0 auto; padding: 20px; }
+    .panel { background: var(--panel); border:1px solid var(--border); border-radius:12px; padding:16px; }
+    .row { display:flex; gap:16px; align-items:stretch; }
+    .col { flex:1; }
+    .templates { display:grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap:12px; margin-top:8px; }
+    .card { background:#1a1a1a; border:1px solid var(--border); border-radius:10px; padding:12px; cursor:pointer; transition: border-color .15s ease; }
+    .card:hover { border-color:#2d2d2d; }
+    .card.selected { outline: 2px solid var(--accent); }
+    .card h3 { margin:0 0 6px 0; font-size:14px; color:#e6e6e6; }
+    .card p { margin:0; font-size:12px; color:#b9c0c7; }
+    .controls { display:flex; gap:8px; align-items:center; justify-content:flex-end; margin-top:12px; }
+    .btn { background: var(--accent); color:#000; border:none; padding:10px 14px; border-radius:8px; font-weight:700; cursor:pointer; }
+    .btn.secondary { background:#232323; color:#d8dde2; border:1px solid #2a2a2a; font-weight:600; }
+    .btn.ghost { background:transparent; color:#b9c0c7; border:1px solid #2a2a2a; }
+    textarea { width:100%; min-height: 360px; background:#0f0f10; color:#e6e6e6; border:1px solid #242424; border-radius:8px; padding:10px; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace; font-size:12px; }
+    .input { width:100%; background:#0f0f10; color:#e6e6e6; border:1px solid #242424; border-radius:8px; padding:8px 10px; font-size:13px; }
+    .muted { color:#9aa0a6; font-size:12px; }
+    .tabs { display:flex; gap:8px; margin-bottom:8px; }
+    .tab { padding:8px 10px; border-radius:9999px; background:#1b1b1b; border:1px solid #2a2a2a; color:#cfd5db; cursor:pointer; font-size:12px; }
+    .tab.active { background:#0d2a2d; border-color:#004f57; color:#b0f3ff; }
+    iframe { width:100%; height:640px; border:1px solid #242424; border-radius:8px; background:white; }
+    .help { margin-top:4px; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Email Builder — Project Updates</h1>
+  </header>
+  <main>
+    <section id="step-1" class="panel">
+      <div class="tabs">
+        <div class="tab active">1. Choose Template</div>
+        <div class="tab">2. Configure</div>
+        <div class="tab">3. Preview & Send</div>
+      </div>
+      <p class="muted">Pick a template to start. You can add more later.</p>
+      <div id="template-list" class="templates"></div>
+      <div class="controls">
+        <button id="to-step-2" class="btn" disabled>Next</button>
+      </div>
+    </section>
+
+    <section id="step-2" class="panel" style="display:none;">
+      <div class="tabs">
+        <div class="tab">1. Choose Template</div>
+        <div class="tab active">2. Configure</div>
+        <div class="tab">3. Preview & Send</div>
+      </div>
+      <div class="row">
+        <div class="col">
+          <label class="muted">To</label>
+          <input type="text" id="to" class="input" placeholder="recipient@example.com">
+        </div>
+        <div class="col">
+          <label class="muted">Subject</label>
+          <input type="text" id="subject" class="input" placeholder="Weekly Update — {{projectName}}">
+        </div>
+      </div>
+      <div class="help muted">JSON config for the selected template:</div>
+      <textarea id="config-editor" spellcheck="false"></textarea>
+      <div class="controls">
+        <button id="back-to-1" class="btn secondary">Back</button>
+        <button id="to-step-3" class="btn">Next</button>
+      </div>
+    </section>
+
+    <section id="step-3" class="panel" style="display:none;">
+      <div class="tabs">
+        <div class="tab">1. Choose Template</div>
+        <div class="tab">2. Configure</div>
+        <div class="tab active">3. Preview & Send</div>
+      </div>
+      <div class="row">
+        <div class="col">
+          <div class="help muted">Preview</div>
+          <iframe id="preview"></iframe>
+        </div>
+      </div>
+      <div class="controls">
+        <button id="back-to-2" class="btn secondary">Back</button>
+        <button id="copy-html" class="btn ghost">Copy HTML</button>
+        <button id="download-html" class="btn ghost">Download HTML</button>
+        <button id="download-eml" class="btn ghost">Download EML</button>
+        <button id="open-outlook-web" class="btn">Open in Outlook Web</button>
+      </div>
+      <div class="help muted">Note: Some desktop Outlook versions ignore HTML via mailto links. Use Outlook Web or EML download if needed.</div>
+    </section>
+  </main>
+  <script src="./builder.js"></script>
+</body>
+</html>
+

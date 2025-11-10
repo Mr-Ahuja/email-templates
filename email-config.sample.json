@@ -1,0 +1,56 @@
+{
+  "projectName": "Nebula CRM",
+  "projectIconUrl": "https://example.com/icon.png",
+  "updateDate": "2025-11-10",
+  "preheader": "Weekly update — highlights, risks, and next steps.",
+  "updateSummary": "We completed the onboarding flow revamp, improved sync reliability, and began the dashboard filters work.",
+  "progressPercent": 68,
+  "sprintNumber": "42",
+  "etaDate": "Dec 15, 2025",
+
+  "statusLabel": "On Track",
+  "statusChip": {
+    "textColor": "#B0F3FF",
+    "bgColor": "#0D2A2D",
+    "borderColor": "#004F57"
+  },
+
+  "whatsNew": [
+    "Onboarding flow redesigned with progressive hints",
+    "API rate limiter tuned for burst traffic",
+    "Dashboard: initial filter chips and presets"
+  ],
+  "risks": [
+    "3rd‑party billing SDK upgrade pending security review",
+    "Legacy export job spikes CPU during peak hours"
+  ],
+
+  "workstreams": [
+    { "label": "Frontend Revamp", "percent": 80 },
+    { "label": "Sync Service", "percent": 62 },
+    { "label": "Dashboard Filters", "percent": 40 },
+    { "label": "Billing Migration", "percent": 25 }
+  ],
+
+  "milestoneTrackPercent": 60,
+  "currentMilestoneIndex": 2,
+  "milestones": [
+    { "label": "Spec", "date": "Sep 18" },
+    { "label": "MVP", "date": "Oct 10" },
+    { "label": "Beta", "date": "Oct 28", "current": true },
+    { "label": "RC", "date": "Nov 20" },
+    { "label": "GA", "date": "Dec 15" }
+  ],
+
+  "contributors": [
+    { "name": "Alex Rivera", "imageUrl": "https://example.com/alex.jpg" },
+    { "name": "Priya Singh", "imageUrl": "https://example.com/priya.jpg" },
+    { "name": "Chen Li", "imageUrl": "https://example.com/chen.jpg" }
+  ],
+
+  "cta": {
+    "label": "View Project Dashboard",
+    "url": "https://example.com/app/projects/nebula"
+  }
+}
+

@@ -1,0 +1,472 @@
+// Simple UI-based builder for project update emails
+// Uses the same JSON schema as email-config.sample.json
+
+(function () {
+  // --- Templates registry ---
+  const TEMPLATES = [
+    {
+      id: 'material-dark-update',
+      name: 'Material Dark — Project Update',
+      description: 'Dark Material look with progress bars, milestones, and contributors.',
+      sampleConfig: `{
+  "projectName": "Nebula CRM",
+  "projectIconUrl": "https://example.com/icon.png",
+  "updateDate": "2025-11-10",
+  "preheader": "Weekly update — highlights, risks, and next steps.",
+  "updateSummary": "We completed the onboarding flow revamp, improved sync reliability, and began the dashboard filters work.",
+  "progressPercent": 68,
+  "sprintNumber": "42",
+  "etaDate": "Dec 15, 2025",
+
+  "statusLabel": "On Track",
+  "statusChip": { "textColor": "#B0F3FF", "bgColor": "#0D2A2D", "borderColor": "#004F57" },
+
+  "whatsNew": [
+    "Onboarding flow redesigned with progressive hints",
+    "API rate limiter tuned for burst traffic",
+    "Dashboard: initial filter chips and presets"
+  ],
+  "risks": [
+    "3rd‑party billing SDK upgrade pending security review",
+    "Legacy export job spikes CPU during peak hours"
+  ],
+
+  "workstreams": [
+    { "label": "Frontend Revamp", "percent": 80 },
+    { "label": "Sync Service", "percent": 62 },
+    { "label": "Dashboard Filters", "percent": 40 },
+    { "label": "Billing Migration", "percent": 25 }
+  ],
+
+  "milestoneTrackPercent": 60,
+  "currentMilestoneIndex": 2,
+  "milestones": [
+    { "label": "Spec", "date": "Sep 18" },
+    { "label": "MVP", "date": "Oct 10" },
+    { "label": "Beta", "date": "Oct 28", "current": true },
+    { "label": "RC", "date": "Nov 20" },
+    { "label": "GA", "date": "Dec 15" }
+  ],
+
+  "contributors": [
+    { "name": "Alex Rivera", "imageUrl": "https://example.com/alex.jpg" },
+    { "name": "Priya Singh", "imageUrl": "https://example.com/priya.jpg" },
+    { "name": "Chen Li", "imageUrl": "https://example.com/chen.jpg" }
+  ],
+
+  "cta": { "label": "View Project Dashboard", "url": "https://example.com/app/projects/nebula" }
+}`,
+      buildHtml
+    }
+  ];
+
+  // --- DOM helpers ---
+  const $ = (sel) => document.querySelector(sel);
+  const $$ = (sel) => document.querySelectorAll(sel);
+
+  function escapeHtml(s) {
+    if (s == null) return '';
+    return String(s)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
+  function clamp(n, lo, hi) { n = +n || 0; return Math.max(lo, Math.min(hi, n)); }
+
+  function buildList(items) {
+    if (!items || !items.length) return '<li>—</li>';
+    return items.map(x => `<li>${escapeHtml(x)}</li>`).join('');
+  }
+
+  function buildWorkstreams(ws) {
+    if (!ws || !ws.length) return '';
+    return ws.map(w => {
+      const label = escapeHtml(w.label || '');
+      const pct = clamp(w.percent, 0, 100);
+      return `
+                    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:0 0 12px 0;">
+                      <tr>
+                        <td valign="middle" style="font-family:Segoe UI,Roboto,Arial,sans-serif; font-size:13px; color:#CDD3D8;">${label}</td>
+                        <td align="right" valign="middle" style="font-family:Segoe UI,Roboto,Arial,sans-serif; font-size:12px; color:#9AA0A6; white-space:nowrap;">${pct}%</td>
+                      </tr>
+                      <tr>
+                        <td colspan="2" style="padding-top:6px;">
+                          <div style="background:#2A2A2A; border-radius:9999px; overflow:hidden; height:8px;">
+                            <div class="bar-fill shimmer" style="background:#00BCD4; width:${pct}%; height:8px;"></div>
+                          </div>
+                        </td>
+                      </tr>
+                    </table>`;
+    }).join('');
+  }
+
+  function buildMilestones(ms, currentIdx) {
+    if (!ms || !ms.length) return '';
+    const width = Math.round((100 / ms.length) * 100) / 100;
+    return ms.map((m, i) => {
+      const label = escapeHtml(m.label || '');
+      const date = escapeHtml(m.date || '');
+      const isCurrent = !!m.current || (typeof currentIdx === 'number' && currentIdx === i);
+      const pulse = isCurrent ? ' pulse' : '';
+      return `
+                        <td align="center" style="width:${width}%;">
+                          <div style="height:10px;">
+                            <span class="milestone-dot${pulse}" style="display:inline-block; width:10px; height:10px; border-radius:9999px; background:#2A2A2A; border:1px solid #3A3A3A;"></span>
+                          </div>
+                          <div style="font-family:Segoe UI,Roboto,Arial,sans-serif; font-size:12px; color:#CDD3D8; margin-top:6px;">${label}</div>
+                          <div style="font-family:Segoe UI,Roboto,Arial,sans-serif; font-size:11px; color:#9AA0A6;">${date}</div>
+                        </td>`;
+    }).join('');
+  }
+
+  function buildContributors(people) {
+    if (!people || !people.length) return '';
+    return people.map((p, i) => {
+      const name = escapeHtml(p.name || '');
+      const img = escapeHtml(p.imageUrl || '');
+      const bottom = (i < people.length - 1) ? '8px' : '0';
+      return `
+                <tr>
+                  <td width="40" valign="middle" style="padding:0 8px ${bottom} 0;">
+                    <img src="${img}" width="32" height="32" alt="${name}" style="display:block; border-radius:9999px; background:#2A2A2A;">
+                  </td>
+                  <td valign="middle" style="padding:0 0 ${bottom} 0;">
+                    <div style="font-family:Segoe UI,Roboto,Arial,sans-serif; font-size:13px; line-height:18px; color:#CDD3D8;">${name}</div>
+                  </td>
+                </tr>`;
+    }).join('');
+  }
+
+  function buildHtml(cfg) {
+    const projectName = String(cfg.projectName || 'Project');
+    const projectIconUrl = String(cfg.projectIconUrl || '');
+    const updateDate = String(cfg.updateDate || new Date().toISOString().slice(0,10));
+    const preheader = String(cfg.preheader || `Weekly update for ${projectName} — progress, milestones, and next steps.`);
+    const updateSummary = String(cfg.updateSummary || '');
+    const progressPercent = clamp(cfg.progressPercent, 0, 100);
+    const sprintNumber = String(cfg.sprintNumber || '');
+    const etaDate = String(cfg.etaDate || '');
+    const statusLabel = String(cfg.statusLabel || 'On Track');
+    const statusChip = cfg.statusChip || {};
+    const chipText = statusChip.textColor || '#B0F3FF';
+    const chipBg = statusChip.bgColor || '#0D2A2D';
+    const chipBorder = statusChip.borderColor || '#004F57';
+    const whatsNew = cfg.whatsNew || [];
+    const risks = cfg.risks || [];
+    const workstreams = cfg.workstreams || [];
+    const milestones = cfg.milestones || [];
+    const milestoneTrackPercent = clamp(cfg.milestoneTrackPercent, 0, 100);
+    const currentMilestoneIndex = (typeof cfg.currentMilestoneIndex === 'number') ? cfg.currentMilestoneIndex : undefined;
+    const contributors = cfg.contributors || [];
+    const cta = cfg.cta || {}; const ctaLabel = cta.label || 'Open Dashboard'; const ctaUrl = cta.url || '#';
+
+    const safeProject = escapeHtml(projectName);
+    const safeSummary = escapeHtml(updateSummary).replace(/\n/g, '<br>');
+    const safePreheader = escapeHtml(preheader);
+    const safeIcon = escapeHtml(projectIconUrl);
+    const safeSprint = escapeHtml(sprintNumber);
+    const safeEta = escapeHtml(etaDate);
+    const safeStatusLabel = escapeHtml(statusLabel);
+
+    const whatsNewHtml = buildList(whatsNew);
+    const risksHtml = buildList(risks);
+    const workstreamsHtml = buildWorkstreams(workstreams);
+    const milestonesHtml = buildMilestones(milestones, currentMilestoneIndex);
+    const contributorsHtml = buildContributors(contributors);
+
+    return `<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  <meta name="color-scheme" content="dark">
+  <meta name="supported-color-schemes" content="dark">
+  <title>${safeProject} — Project Update</title>
+  <style>
+    @media (max-width: 600px) { .container { width: 100% !important; } .p-24 { padding: 16px !important; } .stack { display: block !important; width: 100% !important; } .align-right { text-align: left !important; } }
+    @keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
+    .shimmer { background-image: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.22) 50%, rgba(255,255,255,0) 100%); background-size: 200% 100%; background-repeat: no-repeat; animation: shimmer 2.75s linear infinite; }
+    @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(0,188,212,0.00); transform: scale(1);} 50% { box-shadow: 0 0 0 6px rgba(0,188,212,0.18); transform: scale(1.06);} 100% { box-shadow: 0 0 0 0 rgba(0,188,212,0.00); transform: scale(1);} }
+    .pulse { animation: pulse 3s ease-in-out infinite; }
+    @media (prefers-reduced-motion: reduce) { .shimmer, .pulse { animation: none !important; } }
+  </style>
+  <!--[if mso]><style type="text/css">body, table, td { font-family: Arial, sans-serif !important; }</style><![endif]-->
+  <meta name="format-detection" content="telephone=no,address=no,email=no,date=no,url=no">
+</head>
+<body style="margin:0; padding:0; background:#0B0C0E; color:#E6E6E6; -webkit-text-size-adjust:100%; -ms-text-size-adjust:100%;">
+  <div style="display:none; max-height:0; overflow:hidden; opacity:0; mso-hide:all;">${safePreheader}</div>
+  <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="background:#0B0C0E;">
+    <tr>
+      <td align="center" style="padding:24px;">
+        <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="600" class="container" style="width:600px; max-width:600px; background:#121212; border-radius:16px; box-shadow:0 2px 6px rgba(0,0,0,0.35);">
+          <tr>
+            <td class="p-24" style="padding:24px 24px 12px 24px; border-top-left-radius:16px; border-top-right-radius:16px;">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                <tr>
+                  <td width="52" valign="middle" style="width:52px;">
+                    <img src="${safeIcon}" width="48" height="48" alt="${safeProject} icon" style="display:block; border-radius:10px; outline:none; border:none; text-decoration:none; background:#1E1E1E;">
+                  </td>
+                  <td valign="middle" style="padding-left:12px;">
+                    <div style="font-family:Segoe UI,Roboto,Arial,sans-serif; font-size:12px; line-height:16px; color:#B0B3B8; letter-spacing:.3px;">Project Update</div>
+                    <div style="font-family:Segoe UI,Roboto,Arial,sans-serif; font-size:24px; line-height:28px; font-weight:700; color:#E6E6E6;">${safeProject}</div>
+                  </td>
+                  <td valign="middle" align="right" class="align-right">
+                    <div style="font-family:Segoe UI,Roboto,Arial,sans-serif; font-size:12px; line-height:16px; color:#9AA0A6;">${escapeHtml(updateDate)}</div>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          <tr><td style="padding:0 24px;"><div style="height:1px; background:#222; line-height:1px;">&nbsp;</div></td></tr>
+          <tr>
+            <td class="p-24" style="padding:16px 24px 0 24px;">
+              <div style="font-family:Segoe UI,Roboto,Arial,sans-serif; font-size:14px; line-height:20px; color:#DDE3E8;">${safeSummary}</div>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:16px 24px 0 24px;">
+              <div style="font-family:Segoe UI,Roboto,Arial,sans-serif; font-size:12px; line-height:18px; color:#9AA0A6;">Overall Progress: <span style="color:#E6E6E6; font-weight:600;">${progressPercent}%</span></div>
+              <div style="background:#2A2A2A; border-radius:9999px; overflow:hidden; height:10px; margin-top:8px;">
+                <div class="bar-fill shimmer" style="background:#00BCD4; width:${progressPercent}%; height:10px;"></div>
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:12px 24px 0 24px;">
+              <span style="display:inline-block; font-family:Segoe UI,Roboto,Arial,sans-serif; font-size:11px; color:${chipText}; border:1px solid ${chipBorder}; background:${chipBg}; padding:4px 8px; border-radius:9999px; margin-right:6px;">${safeStatusLabel}</span>
+              <span style="display:inline-block; font-family:Segoe UI,Roboto,Arial,sans-serif; font-size:11px; color:#B0B3B8; border:1px solid #2A2A2A; background:#1A1A1A; padding:4px 8px; border-radius:9999px; margin-right:6px;">Sprint ${safeSprint}</span>
+              <span style="display:inline-block; font-family:Segoe UI,Roboto,Arial,sans-serif; font-size:11px; color:#FFD88A; border:1px solid #4A3A05; background:#2A2104; padding:4px 8px; border-radius:9999px;">ETA: ${safeEta}</span>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:16px 24px 0 24px;">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#1A1A1A; border-radius:12px;">
+                <tr>
+                  <td style="padding:16px;">
+                    <div style="font-family:Segoe UI,Roboto,Arial,sans-serif; font-size:14px; line-height:20px; font-weight:600; color:#E6E6E6; margin-bottom:8px;">What’s New</div>
+                    <ul style="padding-left:18px; margin:0; font-family:Segoe UI,Roboto,Arial,sans-serif; font-size:13px; line-height:20px; color:#CDD3D8;">${whatsNewHtml}</ul>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:12px 24px 0 24px;">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#1A1A1A; border-radius:12px;">
+                <tr>
+                  <td style="padding:16px;">
+                    <div style="font-family:Segoe UI,Roboto,Arial,sans-serif; font-size:14px; line-height:20px; font-weight:600; color:#E6E6E6; margin-bottom:8px;">Workstream Progress</div>
+                    ${workstreamsHtml}
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:12px 24px 0 24px;">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#191919; border-radius:12px;">
+                <tr>
+                  <td style="padding:16px;">
+                    <div style="font-family:Segoe UI,Roboto,Arial,sans-serif; font-size:14px; line-height:20px; font-weight:600; color:#E6E6E6; margin-bottom:8px;">Milestone Track</div>
+                    <div style="background:#2A2A2A; border-radius:9999px; overflow:hidden; height:8px;">
+                      <div class="bar-fill shimmer" style="background:#00BCD4; width:${milestoneTrackPercent}%; height:8px;"></div>
+                    </div>
+                    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top:8px;">
+                      <tr>${milestonesHtml}</tr>
+                    </table>
+                    <!--[if mso]><p style="margin:12px 0 0 0; font-family:Arial, sans-serif; font-size:12px; color:#9AA0A6;">Milestones listed left → right.</p><![endif]-->
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:12px 24px 0 24px;">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#191919; border-radius:12px;">
+                <tr>
+                  <td style="padding:16px;">
+                    <div style="font-family:Segoe UI,Roboto,Arial,sans-serif; font-size:14px; line-height:20px; font-weight:600; color:#E6E6E6; margin-bottom:8px;">Risks & Blockers</div>
+                    <ul style="padding-left:18px; margin:0; font-family:Segoe UI,Roboto,Arial,sans-serif; font-size:13px; line-height:20px; color:#E0B2B2;">${risksHtml}</ul>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          <tr>
+            <td align="left" style="padding:20px 24px 24px 24px;">
+              <!--[if mso]><v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" href="${escapeHtml(ctaUrl)}" style="height:44px;v-text-anchor:middle;width:220px;" arcsize="12%" stroke="f" fillcolor="#00BCD4"><w:anchorlock/><center style="color:#000000; font-family:Segoe UI, Arial, sans-serif; font-size:14px; font-weight:700;">${escapeHtml(ctaLabel)}</center></v:roundrect><![endif]-->
+              <!--[if !mso]><!-- -->
+              <a href="${escapeHtml(ctaUrl)}" style="background:#00BCD4; color:#000; text-decoration:none; font-family:Segoe UI,Roboto,Arial,sans-serif; font-size:14px; font-weight:700; line-height:44px; display:inline-block; min-width:220px; text-align:center; border-radius:6px;">${escapeHtml(ctaLabel)}</a>
+              <!--<![endif]-->
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:12px 24px 0 24px;">
+              <div style="font-family:Segoe UI,Roboto,Arial,sans-serif; font-size:12px; line-height:16px; color:#9AA0A6; margin-bottom:8px;">Contributors</div>
+              <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
+                ${contributorsHtml}
+              </table>
+            </td>
+          </tr>
+          <tr><td style="padding:0 24px 20px 24px;"><div style="height:1px; background:#222; line-height:1px;">&nbsp;</div></td></tr>
+          <tr>
+            <td style="padding:8px 24px 24px 24px;">
+              <div style="font-family:Segoe UI,Roboto,Arial,sans-serif; font-size:12px; line-height:18px; color:#7F8B95;">You are receiving this update about <span style="color:#C9D1D9;">${safeProject}</span>. To change your notification preferences, visit your dashboard.</div>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+  <div style="display:none; white-space:nowrap; font:15px courier; line-height:0;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</div>
+</body>
+</html>`;
+  }
+
+  // --- UI logic ---
+  const listEl = document.getElementById('template-list');
+  const toStep2Btn = document.getElementById('to-step-2');
+  const backTo1Btn = document.getElementById('back-to-1');
+  const toStep3Btn = document.getElementById('to-step-3');
+  const backTo2Btn = document.getElementById('back-to-2');
+  const editor = document.getElementById('config-editor');
+  const toInput = document.getElementById('to');
+  const subjectInput = document.getElementById('subject');
+  const previewFrame = document.getElementById('preview');
+  const copyBtn = document.getElementById('copy-html');
+  const downloadHtmlBtn = document.getElementById('download-html');
+  const downloadEmlBtn = document.getElementById('download-eml');
+  const openOutlookWebBtn = document.getElementById('open-outlook-web');
+
+  let selectedTemplate = null;
+  let lastHtml = '';
+
+  function selectTemplate(t) {
+    selectedTemplate = t;
+    for (const card of $$('.card')) card.classList.remove('selected');
+    const chosen = document.querySelector(`[data-id="${t.id}"]`);
+    if (chosen) chosen.classList.add('selected');
+    toStep2Btn.disabled = false;
+  }
+
+  function renderTemplates() {
+    listEl.innerHTML = '';
+    TEMPLATES.forEach(t => {
+      const div = document.createElement('div');
+      div.className = 'card';
+      div.dataset.id = t.id;
+      div.innerHTML = `<h3>${t.name}</h3><p>${t.description}</p>`;
+      div.addEventListener('click', () => selectTemplate(t));
+      listEl.appendChild(div);
+    });
+    // Auto-select first
+    if (TEMPLATES[0]) selectTemplate(TEMPLATES[0]);
+  }
+
+  function parseConfig() {
+    try { return JSON.parse(editor.value); }
+    catch (e) { alert('Invalid JSON: ' + e.message); throw e; }
+  }
+
+  function showStep(n) {
+    document.getElementById('step-1').style.display = (n === 1 ? '' : 'none');
+    document.getElementById('step-2').style.display = (n === 2 ? '' : 'none');
+    document.getElementById('step-3').style.display = (n === 3 ? '' : 'none');
+  }
+
+  function setPreview(html) {
+    lastHtml = html;
+    const doc = previewFrame.contentDocument;
+    doc.open();
+    doc.write(html);
+    doc.close();
+  }
+
+  function download(filename, mime, content) {
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([content], { type: mime }));
+    a.download = filename;
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+  }
+
+  function buildEml(to, subject, html) {
+    const headers = [
+      `From: `,
+      `To: ${to || ''}`,
+      `Subject: ${subject || ''}`,
+      `MIME-Version: 1.0`,
+      `Content-Type: text/html; charset=UTF-8`,
+      `Content-Transfer-Encoding: 8bit`,
+      '',
+    ].join('\r\n');
+    return headers + html;
+  }
+
+  function openOutlookWeb(to, subject, html) {
+    // Deep link to Outlook Web compose with HTML body. Some tenants redirect.
+    const base = 'https://outlook.office.com/mail/deeplink/compose';
+    const url = `${base}?to=${encodeURIComponent(to || '')}&subject=${encodeURIComponent(subject || '')}&body=${encodeURIComponent(html)}&mailBodyType=html`;
+    window.open(url, '_blank');
+  }
+
+  // Wire up buttons
+  toStep2Btn.addEventListener('click', () => {
+    editor.value = selectedTemplate.sampleConfig;
+    // Default subject from projectName
+    try {
+      const cfg = JSON.parse(editor.value);
+      subjectInput.value = `Weekly Update — ${cfg.projectName || 'Project'}`;
+    } catch {}
+    showStep(2);
+  });
+
+  backTo1Btn.addEventListener('click', () => showStep(1));
+
+  toStep3Btn.addEventListener('click', () => {
+    const cfg = parseConfig();
+    const html = selectedTemplate.buildHtml(cfg);
+    setPreview(html);
+    showStep(3);
+  });
+
+  backTo2Btn.addEventListener('click', () => showStep(2));
+
+  copyBtn.addEventListener('click', async () => {
+    try {
+      await navigator.clipboard.writeText(lastHtml);
+      copyBtn.textContent = 'Copied!';
+      setTimeout(() => (copyBtn.textContent = 'Copy HTML'), 1200);
+    } catch (e) {
+      alert('Copy failed: ' + e.message);
+    }
+  });
+
+  downloadHtmlBtn.addEventListener('click', () => {
+    const cfg = parseConfig();
+    const name = (cfg.projectName || 'project').toLowerCase().replace(/[^a-z0-9]+/g, '-');
+    download(`${name}-update.html`, 'text/html;charset=utf-8', lastHtml);
+  });
+
+  downloadEmlBtn.addEventListener('click', () => {
+    const to = toInput.value.trim();
+    const subject = subjectInput.value.trim();
+    const eml = buildEml(to, subject, lastHtml);
+    const name = subject ? subject.toLowerCase().replace(/[^a-z0-9]+/g, '-') : 'project-update';
+    download(`${name}.eml`, 'message/rfc822', eml);
+  });
+
+  openOutlookWebBtn.addEventListener('click', () => {
+    const to = toInput.value.trim();
+    const subject = subjectInput.value.trim();
+    openOutlookWeb(to, subject, lastHtml);
+  });
+
+  // Init
+  renderTemplates();
+})();
+
