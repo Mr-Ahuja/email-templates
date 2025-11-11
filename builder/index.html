@@ -117,7 +117,10 @@
           <div class="panel sticky">
             <div class="row" style="justify-content:space-between; align-items:center;">
               <div class="help muted">Versions</div>
-              <button id="add-version" class="btn">Add Version</button>
+              <div class="controls">
+                <button id="toggle-versions" class="btn secondary" aria-expanded="true">Collapse</button>
+                <button id="add-version" class="btn">Add Version</button>
+              </div>
             </div>
             <div id="version-list" class="list"></div>
           </div>
@@ -162,4 +165,3 @@
   <script src="./app.js"></script>
 </body>
 </html>
-

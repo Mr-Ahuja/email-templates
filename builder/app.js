@@ -58,6 +58,17 @@
   // Wire actions
   $('#back-dashboard').addEventListener('click',()=>renderDashboard());
   $('#add-version').addEventListener('click',()=>{ const p=store.projects[currentProjectId]; const base=JSON.parse(JSON.stringify(currentConfig)); const v={id:uid(),name:`v${(p.versions?.length||0)+1}`,config:base,isDraft:true,createdAt:Date.now(),updatedAt:Date.now()}; p.versions.push(v); p.updatedAt=Date.now(); saveStore(); openProject(currentProjectId,v.id); });
+  // Collapse/expand versions list
+  const toggleBtn = document.getElementById('toggle-versions');
+  if (toggleBtn) {
+    toggleBtn.addEventListener('click', ()=>{
+      const list = document.getElementById('version-list');
+      const expanded = toggleBtn.getAttribute('aria-expanded') === 'true';
+      toggleBtn.setAttribute('aria-expanded', expanded ? 'false' : 'true');
+      toggleBtn.textContent = expanded ? 'Expand' : 'Collapse';
+      if (list) list.style.display = expanded ? 'none' : '';
+    });
+  }
   $('#mode-form').addEventListener('click',e=>{e.preventDefault(); formPane.style.display=''; jsonPane.style.display='none'; $('#mode-form').className='btn'; $('#mode-json').className='btn secondary';});
   $('#mode-json').addEventListener('click',e=>{e.preventDefault(); formPane.style.display='none'; jsonPane.style.display=''; $('#mode-form').className='btn secondary'; $('#mode-json').className='btn';});
   $('#sync-from-json').addEventListener('click',()=>{ try{ currentConfig=JSON.parse(editor.value); const p=store.projects[currentProjectId]; const v=p.versions.find(x=>x.id===currentVersionId); v.config=JSON.parse(JSON.stringify(currentConfig)); v.updatedAt=Date.now(); p.updatedAt=v.updatedAt; saveStore(); renderFormFromConfig(currentConfig,p.templateId); schedulePreview(); statusBar.textContent='Synced from JSON'; setTimeout(()=>statusBar.textContent='',1200);}catch(e){ alert('Invalid JSON: '+e.message);} });
@@ -77,3 +88,35 @@
   loadStore(); renderDashboard();
 })();
 
+// Additional templates and helpers appended
+(function(){
+  if (typeof window === 'undefined') return;
+  // Hermes Light builder by transforming Material Dark palette
+  function buildHtmlHermesLight(cfg){
+    const html = (typeof buildHtmlMaterialDark === 'function') ? buildHtmlMaterialDark(cfg) : '';
+    return html
+      .replace(/#0b0c0e/gi,'#F5F7FA')
+      .replace(/#121212/gi,'#FFFFFF')
+      .replace(/#1a1a1a/gi,'#FFFFFF')
+      .replace(/#191919/gi,'#FFFFFF')
+      .replace(/#222/gi,'#E5E7EB')
+      .replace(/#2a2a2a/gi,'#E5E7EB')
+      .replace(/#cdd3d8/gi,'#374151')
+      .replace(/#dde3e8/gi,'#1F2937')
+      .replace(/#e6e6e6/gi,'#111827')
+      .replace(/#9aa0a6/gi,'#6B7280')
+      .replace(/#00bcd4/gi,'#2D7FF9');
+  }
+
+  function buildHtmlBrutalistNeon(cfg){
+    const esc=(s)=>String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+    const clamp=(n)=>Math.max(0,Math.min(100,+n||0));
+    const name=String(cfg.projectName||'PROJECT'); const icon=String(cfg.projectIconUrl||''); const date=String(cfg.updateDate||new Date().toISOString().slice(0,10)); const pre=String(cfg.preheader||'Status brief'); const summary=String(cfg.updateSummary||''); const pct=clamp(cfg.progressPercent); const ws=cfg.workstreams||[]; const ms=cfg.milestones||[]; const track=clamp(cfg.milestoneTrackPercent); const cta=cfg.cta||{}; const ctaLabel=cta.label||'OPEN'; const ctaUrl=cta.url||'#'; const ACC=String(cfg.accentColor||'#FF2D9B'); const ACC2=String(cfg.accentAltColor||'#00FFD1'); const ascii=(p,l=28)=>{p=clamp(p);const f=Math.round(p/100*l);return '['+'█'.repeat(f)+'░'.repeat(Math.max(0,l-f))+`] ${p}%`;}; const wsHtml=ws.map(w=>`<tr><td style="padding:6px 0;font:12px Consolas,monospace;color:#111">${esc(w.label||'')}</td><td align="right" style="padding:6px 0;font:12px Consolas,monospace;color:#111">${clamp(w.percent)}%</td></tr><tr><td colspan="2" style="font:12px Consolas,monospace;color:#111">${esc(ascii(clamp(w.percent),24))}</td></tr>`).join(''); const msl=!ms.length?'':`<table role="presentation" width="100%"><tr>${ms.map(m=>`<td align="center" style="width:${(100/ms.length).toFixed(2)}%"><div style="height:16px"><span style="display:inline-block;width:2px;height:16px;background:${ACC}"></span></div><div style="font:12px Consolas,monospace;color:#111;margin-top:6px">${esc(m.label||'')}</div><div style="font:11px Consolas,monospace;color:#4B5563">${esc(m.date||'')}</div></td>`).join('')}</tr></table>`; return `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${esc(name)} — Brief</title></head><body style="margin:0;background:#0F0F0F;color:#111"><div style="display:none;max-height:0;overflow:hidden;opacity:0">${esc(pre)}</div><table role="presentation" width="100%" style="background:#0F0F0F"><tr><td align="center" style="padding:24px"><table role="presentation" width="680" style="background:#FFFFFF;border:4px solid #000"><tr><td style="padding:10px 16px;background:${ACC};font:700 12px Consolas,monospace;letter-spacing:1px">STATUS BRIEF · ${esc(date)}</td></tr><tr><td style="padding:16px;border-bottom:4px solid #000"><table width="100%"><tr><td width="60"><img src="${esc(icon)}" width="56" height="56" alt="${esc(name)} icon" style="display:block;border:3px solid #000;background:#fff"></td><td style="padding-left:12px"><div style="font:11px Consolas,monospace;color:#111">PROJECT</div><div style="font:28px Impact,'Arial Black',Arial;color:#000;text-transform:uppercase">${esc(name)}</div></td><td align="right" style="font:11px Consolas,monospace;color:#111">${esc(date)}</td></tr></table></td></tr><tr><td style="padding:12px 16px 0"><div style="font:15px Arial;color:#111">${esc(summary).replace(/\n/g,'<br>')}</div><div style="margin-top:8px;font:13px Consolas,monospace;color:#111">${esc(ascii(pct,28))}</div><div style="background:#000;height:2px;margin-top:6px"></div><div style="background:${ACC2};height:6px;width:${pct}%;margin-top:-4px"></div></td></tr><tr><td style="padding:12px 16px 0"><table role="presentation" width="100%" style="border:3px solid #000"><tr><td style="padding:10px;background:${ACC2};font:700 12px Consolas,monospace">WORKSTREAMS</td></tr><tr><td style="padding:8px 12px"><table role="presentation" width="100%">${wsHtml}</table></td></tr></table></td></tr><tr><td style="padding:12px 16px 0"><table role="presentation" width="100%" style="border:3px solid #000"><tr><td style="padding:10px;background:${ACC};font:700 12px Consolas,monospace">ROUTE</td></tr><tr><td style="padding:12px"><div style="background:#000;height:2px"></div><div style="background:${ACC};height:6px;width:${track}%;margin-top:-4px"></div><div style="margin-top:8px">${msl}</div></td></tr></table></td></tr><tr><td style="padding:16px"><a href="${esc(ctaUrl)}" style="display:inline-block;min-width:260px;text-align:center;text-decoration:none;background:${ACC2};color:#000;border:3px solid #000;font:800 14px/48px Arial;letter-spacing:1px">${esc(ctaLabel)}</a></td></tr></table></td></tr></table></body></html>`; }
+
+  if (typeof TEMPLATES !== 'undefined'){
+    TEMPLATES.push(
+      { id:'mythic-light-hermes', name:'Mythic Light — Hermes Update', description:'Light theme with subtle Greek myth accents.', sampleConfig:`{"projectName":"Project Hermes","projectIconUrl":"https://example.com/hermes-icon.png","updateDate":"2025-11-10","preheader":"Hermes dispatch — weekly status and next steps.","updateSummary":"Swift progress on the messaging relays and route optimization.","progressPercent":72,"sections":[{"title":"What’s New","items":["Relay pipeline refactor","Courier offline queue"]},{"title":"Headwinds","items":["Map tiles quota","Webhook retry cascades"]}],"workstreams":[{"label":"Relays","percent":80},{"label":"Courier App","percent":65}],"milestoneTrackPercent":55,"milestones":[{"label":"Spec","date":"Oct 12"},{"label":"Prototype","date":"Nov 08"},{"label":"Beta","date":"Dec 05"}],"cta":{"label":"Open Dispatch Console","url":"https://example.com/hermes"},"footerText":"Dispatch notice for {{PROJECT_NAME}}."}`, buildHtml: buildHtmlHermesLight },
+      { id:'brutalist-neon', name:'Brutalist Neon — Status Brief', description:'Unorthodox neon brutalist layout with ASCII bars and bold blocks.', sampleConfig:`{"projectName":"Project Hermes","projectIconUrl":"https://example.com/hermes-icon.png","updateDate":"2025-11-10","preheader":"Status brief — neon brutalist.","updateSummary":"Blunt, bold, and bright: key signals and next actions.","progressPercent":64,"workstreams":[{"label":"Relays","percent":80},{"label":"Courier App","percent":58},{"label":"Routing","percent":31}],"milestoneTrackPercent":54,"milestones":[{"label":"Spec","date":"Oct 10"},{"label":"Proto","date":"Nov 05"},{"label":"Beta","date":"Dec 01"}],"cta":{"label":"OPEN CONSOLE","url":"https://example.com/hermes"},"accentColor":"#FF2D9B","accentAltColor":"#00FFD1","footerText":"Brief for {{PROJECT_NAME}} — manage prefs in your profile."}`, buildHtml: buildHtmlBrutalistNeon }
+    );
+  }
+})();
