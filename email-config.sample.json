@@ -51,6 +51,7 @@
   "cta": {
     "label": "View Project Dashboard",
     "url": "https://example.com/app/projects/nebula"
-  }
-}
+  },
 
+  "footerText": "You are receiving this update about {{PROJECT_NAME}}. To change your notification preferences, visit your dashboard."
+}

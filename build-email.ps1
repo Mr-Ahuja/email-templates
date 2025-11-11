@@ -184,6 +184,19 @@ $safeSprint = Escape-HTML $sprintNumber
 $safeEta = Escape-HTML $etaDate
 $safeStatusLabel = Escape-HTML $statusLabel
 
+# Footer content (configurable): prefer footerHtml, else footerText, else default
+$footerHtmlTpl = Get-Prop $cfg 'footerHtml' $null
+$footerTextTpl = [string](Get-Prop $cfg 'footerText' '')
+if ($footerHtmlTpl) {
+  $footerBlockHtml = ($footerHtmlTpl -replace '\{\{PROJECT_NAME\}\}', $safeProject)
+} elseif (-not [string]::IsNullOrWhiteSpace($footerTextTpl)) {
+  $footerTextResolved = $footerTextTpl -replace '\{\{PROJECT_NAME\}\}', $projectName
+  $safeFooterText = Escape-HTML $footerTextResolved
+  $footerBlockHtml = "<div style=\"font-family:Segoe UI,Roboto,Arial,sans-serif; font-size:12px; line-height:18px; color:#7F8B95;\">$safeFooterText</div>"
+} else {
+  $footerBlockHtml = "<div style=\"font-family:Segoe UI,Roboto,Arial,sans-serif; font-size:12px; line-height:18px; color:#7F8B95;\">You are receiving this update about <span style=\"color:#C9D1D9;\">$safeProject</span>. To change your notification preferences, visit your dashboard.</div>"
+}
+
 $html = @"
 <!DOCTYPE html>
 <html lang="en" xmlns="http://www.w3.org/1999/xhtml">
@@ -338,7 +351,7 @@ $html = @"
           <tr><td style="padding:0 24px 20px 24px;"><div style="height:1px; background:#222; line-height:1px;">&nbsp;</div></td></tr>
           <tr>
             <td style="padding:8px 24px 24px 24px;">
-              <div style="font-family:Segoe UI,Roboto,Arial,sans-serif; font-size:12px; line-height:18px; color:#7F8B95;">You are receiving this update about <span style="color:#C9D1D9;">$safeProject</span>. To change your notification preferences, visit your dashboard.</div>
+              $footerBlockHtml
             </td>
           </tr>
         </table>

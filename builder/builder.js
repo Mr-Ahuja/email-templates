@@ -162,6 +162,8 @@
     const currentMilestoneIndex = (typeof cfg.currentMilestoneIndex === 'number') ? cfg.currentMilestoneIndex : undefined;
     const contributors = cfg.contributors || [];
     const cta = cfg.cta || {}; const ctaLabel = cta.label || 'Open Dashboard'; const ctaUrl = cta.url || '#';
+    const footerHtmlTpl = cfg.footerHtml;
+    const footerTextTpl = cfg.footerText;
 
     const safeProject = escapeHtml(projectName);
     const safeSummary = escapeHtml(updateSummary).replace(/\n/g, '<br>');
@@ -176,6 +178,15 @@
     const workstreamsHtml = buildWorkstreams(workstreams);
     const milestonesHtml = buildMilestones(milestones, currentMilestoneIndex);
     const contributorsHtml = buildContributors(contributors);
+    let footerBlock;
+    if (typeof footerHtmlTpl === 'string' && footerHtmlTpl.length) {
+      footerBlock = footerHtmlTpl.replace(/\{\{PROJECT_NAME\}\}/g, safeProject);
+    } else if (typeof footerTextTpl === 'string' && footerTextTpl.length) {
+      const resolved = footerTextTpl.replace(/\{\{PROJECT_NAME\}\}/g, projectName);
+      footerBlock = `<div style="font-family:Segoe UI,Roboto,Arial,sans-serif; font-size:12px; line-height:18px; color:#7F8B95;">${escapeHtml(resolved)}</div>`;
+    } else {
+      footerBlock = `<div style="font-family:Segoe UI,Roboto,Arial,sans-serif; font-size:12px; line-height:18px; color:#7F8B95;">You are receiving this update about <span style="color:#C9D1D9;">${safeProject}</span>. To change your notification preferences, visit your dashboard.</div>`;
+    }
 
     return `<!DOCTYPE html>
 <html lang="en" xmlns="http://www.w3.org/1999/xhtml">
@@ -314,9 +325,7 @@
           </tr>
           <tr><td style="padding:0 24px 20px 24px;"><div style="height:1px; background:#222; line-height:1px;">&nbsp;</div></td></tr>
           <tr>
-            <td style="padding:8px 24px 24px 24px;">
-              <div style="font-family:Segoe UI,Roboto,Arial,sans-serif; font-size:12px; line-height:18px; color:#7F8B95;">You are receiving this update about <span style="color:#C9D1D9;">${safeProject}</span>. To change your notification preferences, visit your dashboard.</div>
-            </td>
+            <td style="padding:8px 24px 24px 24px;">${footerBlock}</td>
           </tr>
         </table>
       </td>
@@ -469,4 +478,3 @@
   // Init
   renderTemplates();
 })();
-
