@@ -32,6 +32,14 @@
     .tab.active { background:#0d2a2d; border-color:#004f57; color:#b0f3ff; }
     iframe { width:100%; height:640px; border:1px solid #242424; border-radius:8px; background:white; }
     .help { margin-top:4px; }
+    .split { display:flex; gap:12px; align-items:stretch; }
+    .split-left { flex: 1 1 58%; min-width: 0; }
+    .split-right { flex: 1 1 42%; min-width: 320px; }
+    .sticky { position: sticky; top: 72px; }
+    @media (max-width: 980px) {
+      .split { display:block; }
+      .split-right { margin-top:12px; }
+    }
   </style>
 </head>
 <body>
@@ -101,21 +109,25 @@
         </div>
       </div>
 
-      <!-- Form pane (dynamic) -->
-      <div id="form-pane" class="panel" style="margin-top:8px; display:none;">
-        <div id="dynamic-form"></div>
-      </div>
-
-      <!-- JSON pane -->
-      <div id="json-pane" class="panel" style="margin-top:8px;">
-        <div class="help muted">JSON config for the selected template:</div>
-        <textarea id="config-editor" spellcheck="false"></textarea>
-      </div>
-
-      <!-- Live preview pane (updates while editing) -->
-      <div id="live-preview-pane" class="panel" style="margin-top:8px;">
-        <div class="help muted">Live Preview</div>
-        <iframe id="live-preview"></iframe>
+      <div class="split" style="margin-top:8px;">
+        <div class="split-left">
+          <!-- Form pane (dynamic) -->
+          <div id="form-pane" class="panel" style="display:none;">
+            <div id="dynamic-form"></div>
+          </div>
+          <!-- JSON pane -->
+          <div id="json-pane" class="panel">
+            <div class="help muted">JSON config for the selected template:</div>
+            <textarea id="config-editor" spellcheck="false"></textarea>
+          </div>
+        </div>
+        <div class="split-right">
+          <!-- Live preview pane (updates while editing) -->
+          <div id="live-preview-pane" class="panel sticky">
+            <div class="help muted">Live Preview</div>
+            <iframe id="live-preview"></iframe>
+          </div>
+        </div>
       </div>
       <div class="controls">
         <button id="back-to-1" class="btn secondary">Back</button>
