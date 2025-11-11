@@ -1,193 +1,211 @@
-﻿(function(){
-  const $=(s,e=document)=>e.querySelector(s); const $$=(s,e=document)=>e.querySelectorAll(s);
+// Email Builder v2 — clean rebuild
+(function(){
+  'use strict';
+
+  // DOM helpers
+  const $=(s,e=document)=>e.querySelector(s);
+  const $$=(s,e=document)=>e.querySelectorAll(s);
   const esc=(s)=>String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
-  const clamp=(n,lo=0,hi=100)=>Math.max(lo,Math.min(hi,+n||0));
+  const clamp=(n,lo=0,hi=100)=>Math.max(lo,Math.min(hi,Number.isFinite(+n)?+n:0));
   const dataUriFromSvg=(code)=>'data:image/svg+xml;utf8,'+encodeURIComponent(code);
 
-  // Light variant by palette transform over Material Dark output
-  function buildHtmlHermesLight(cfg){
-    const html = typeof buildHtmlMaterialDark === 'function' ? buildHtmlMaterialDark(cfg) : '';
-    return html
-      .replace(/#0b0c0e/gi,'#F5F7FA')
-      .replace(/#121212/gi,'#FFFFFF')
-      .replace(/#1a1a1a/gi,'#FFFFFF')
-      .replace(/#191919/gi,'#FFFFFF')
-      .replace(/#222/gi,'#E5E7EB')
-      .replace(/#2a2a2a/gi,'#E5E7EB')
-      .replace(/#cdd3d8/gi,'#374151')
-      .replace(/#dde3e8/gi,'#1F2937')
-      .replace(/#e6e6e6/gi,'#111827')
-      .replace(/#9aa0a6/gi,'#6B7280')
-      .replace(/#00bcd4/gi,'#2D7FF9');
-  }
+  // Default inline SVG avatar (A on mint block)
+  const DEFAULT_IMG=dataUriFromSvg('<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128"><rect width="100%" height="100%" fill="#00FFD1"/><text x="50%" y="54%" dy=".1em" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="56" fill="#000">A</text></svg>');
 
-  // Brutalist Neon minimal variant (compact unique look)
-  function buildHtmlBrutalistNeon(cfg){
-    const e=(s)=>String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\"/g,'&quot;').replace(/'/g,'&#39;');
-    const c=(n)=>Math.max(0,Math.min(100,+n||0));
-    const name=String(cfg.projectName||'PROJECT'); const icon=String(cfg.projectIconUrl||'');
-    const date=String(cfg.updateDate||new Date().toISOString().slice(0,10));
-    const pre=String(cfg.preheader||'Status brief'); const summary=String(cfg.updateSummary||'');
-    const pct=c(cfg.progressPercent); const ws=cfg.workstreams||[]; const ms=cfg.milestones||[]; const track=c(cfg.milestoneTrackPercent);
-    const cta=cfg.cta||{}; const ctaLabel=cta.label||'OPEN'; const ctaUrl=cta.url||'#';
-    const ACC=String(cfg.accentColor||'#FF2D9B'); const ACC2=String(cfg.accentAltColor||'#00FFD1');
-    const ascii=(p,l=28)=>{p=c(p);const f=Math.round(p/100*l);return '['+'█'.repeat(f)+'░'.repeat(Math.max(0,l-f))+`] ${p}%`;};
-    const wsHtml=ws.map(w=>`<tr><td style="padding:6px 0;font:12px Consolas,monospace;color:#111">${e(w.label||'')}</td><td align="right" style="padding:6px 0;font:12px Consolas,monospace;color:#111">${c(w.percent)}%</td></tr><tr><td colspan="2" style="font:12px Consolas,monospace;color:#111">${e(ascii(c(w.percent),24))}</td></tr>`).join('');
-    const msl=!ms.length?'':`<table role="presentation" width="100%"><tr>${ms.map(m=>`<td align=\"center\" style=\"width:${(100/ms.length).toFixed(2)}%\"><div style=\"height:16px\"><span style=\"display:inline-block;width:2px;height:16px;background:${ACC}\"></span></div><div style=\"font:12px Consolas,monospace;color:#111;margin-top:6px\">${e(m.label||'')}</div><div style=\"font:11px Consolas,monospace;color:#4B5563\">${e(m.date||'')}</div></td>`).join('')}</tr></table>`;
-    return `<!DOCTYPE html><html><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><title>${e(name)} — Brief</title></head><body style=\"margin:0;background:#0F0F0F;color:#111\"><div style=\"display:none;max-height:0;overflow:hidden;opacity:0\">${e(pre)}</div><table role=\"presentation\" width=\"100%\" style=\"background:#0F0F0F\"><tr><td align=\"center\" style=\"padding:24px\"><table role=\"presentation\" width=\"680\" style=\"background:#FFFFFF;border:4px solid #000\"><tr><td style=\"padding:10px 16px;background:${ACC};font:700 12px Consolas,monospace;letter-spacing:1px\">STATUS BRIEF · ${e(date)}</td></tr><tr><td style=\"padding:16px;border-bottom:4px solid #000\"><table width=\"100%\"><tr><td width=\"60\"><img src=\"${e(icon)}\" width=\"56\" height=\"56\" alt=\"${e(name)} icon\" style=\"display:block;border:3px solid #000;background:#fff\"></td><td style=\"padding-left:12px\"><div style=\"font:11px Consolas,monospace;color:#111\">PROJECT</div><div style=\"font:28px Impact,'Arial Black',Arial;color:#000;text-transform:uppercase\">${e(name)}</div></td><td align=\"right\" style=\"font:11px Consolas,monospace;color:#111\">${e(date)}</td></tr></table></td></tr><tr><td style=\"padding:12px 16px 0\"><div style=\"font:15px Arial;color:#111\">${e(summary).replace(/\n/g,'<br>')}</div><div style=\"margin-top:8px;font:13px Consolas,monospace;color:#111\">${e(ascii(pct,28))}</div><div style=\"background:#000;height:2px;margin-top:6px\"></div><div style=\"background:${ACC2};height:6px;width:${pct}%;margin-top:-4px\"></div></td></tr><tr><td style=\"padding:12px 16px 0\"><table role=\"presentation\" width=\"100%\" style=\"border:3px solid #000\"><tr><td style=\"padding:10px;background:${ACC2};font:700 12px Consolas,monospace\">WORKSTREAMS</td></tr><tr><td style=\"padding:8px 12px\"><table role=\"presentation\" width=\"100%\">${wsHtml}</table></td></tr></table></td></tr><tr><td style=\"padding:12px 16px 0\"><table role=\"presentation\" width=\"100%\" style=\"border:3px solid #000\"><tr><td style=\"padding:10px;background:${ACC};font:700 12px Consolas,monospace\">ROUTE</td></tr><tr><td style=\"padding:12px\"><div style=\"background:#000;height:2px\"></div><div style=\"background:${ACC};height:6px;width:${track}%;margin-top:-4px\"></div><div style=\"margin-top:8px\">${msl}</div></td></tr></table></td></tr><tr><td style=\"padding:16px\"><a href=\"${e(ctaUrl)}\" style=\"display:inline-block;min-width:260px;text-align:center;text-decoration:none;background:${ACC2};color:#000;border:3px solid #000;font:800 14px/48px Arial;letter-spacing:1px\">${e(ctaLabel)}</a></td></tr></table></td></tr></table></body></html>`;
-  }
-
-  function extractPlaceholders(html){
-    const map = {};
-    const tokens = new Set();
-    const re = /{{\s*([A-Za-z0-9_.-]+)\s*}}/g;
-    let m; while((m=re.exec(html))){ tokens.add(m[1]); }
-    // Group numbered items (e.g., WHATS_NEW_ITEM_1)
-    const groups = {};
-    for(const t of tokens){
-      const mm = t.match(/^(.*)_([0-9]+)$/);
-      if(mm){ const base=mm[1]; const idx=parseInt(mm[2],10)-1; if(!groups[base]) groups[base]=[]; groups[base][idx] = ''; }
-      else { map[t] = ''; }
-    }
-    for(const base in groups){ map[base] = groups[base].map(v=>v||''); }
-    return map;
-  }
-  function buildFromTemplateHtml(html, cfg){
-    let out = html;
-    for(const key in cfg){ if(Array.isArray(cfg[key])){
-      const arr = cfg[key];
-      for(let i=0;i<arr.length;i++){
-        const token = new RegExp('{{\\s*'+ key.replace(/[-/\\^$*+?.()|[\]{}]/g,'\\$&') + '_' + (i+1) +'\\s*}}','g');
-        out = out.replace(token, arr[i] ?? '');
-      }
-    }}
-    const re = /{{\s*([A-Za-z0-9_.-]+)\s*}}/g; let m; const seen = new Set();
-    while((m = re.exec(html))){ const name = m[1]; if(seen.has(name)) continue; seen.add(name);
-      if(!name.match(/^(.*)_([0-9]+)$/)){
-        const token = new RegExp('{{\\s*'+ name.replace(/[-/\\^$*+?.()|[\]{}]/g,'\\$&') +'\\s*}}','g');
-        out = out.replace(token, (cfg[name] ?? ''));
-      }
-    }
-    return out;
-  }
-  function createProjectFromHtml(html, name){
-    const id = uid(); const now = Date.now(); const vid = uid();
-    const cfg = extractPlaceholders(html);
-    for (const k in cfg){ if (typeof cfg[k] === 'string' && /ICON|IMAGE/i.test(k)) cfg[k] = DEFAULT_IMG; if (Array.isArray(cfg[k]) && /IMAGE|ICON/i.test(k)) cfg[k] = cfg[k].map(()=>DEFAULT_IMG); }
-\ versions:[{ id: vid, name: 'v1', config: cfg, isDraft:true, createdAt: now, updatedAt: now }] };
-    saveStore(); openProject(id, vid);
-  }
-  function buildCurrentHtml(){ const p=store.projects[currentProjectId]; if(!p) return ''; if (p.templateHtml) return buildFromTemplateHtml(p.templateHtml, currentConfig); return getTemplate().buildHtml(currentConfig); }
-  function buildFromTemplateHtml(html, cfg){
-    let out = html;
-    // arrays
-    for(const key in cfg){ if(Array.isArray(cfg[key])){
-      const arr = cfg[key];
-      for(let i=0;i<arr.length;i++){
-        const token = new RegExp('{{\\s*'+ key.replace(/[-/\\^$*+?.()|[\]{}]/g,'\\function buildHtmlMaterialDark(cfg){') + '_' + (i+1) +'\\s*}}','g');
-        out = out.replace(token, arr[i] ?? '');
-      }
-    }}
-    // scalars / leftovers
-    const re = /{{\s*([A-Za-z0-9_.-]+)\s*}}/g; let m; const seen=new Set();
-    while((m=re.exec(html))){ const name=m[1]; if(seen.has(name)) continue; seen.add(name);
-      if(!name.match(/^(.*)_([0-9]+)$/)){
-        const token = new RegExp('{{\\s*'+ name.replace(/[-/\\^$*+?.()|[\]{}]/g,'\\function buildHtmlMaterialDark(cfg){') +'\\s*}}','g');
-        out = out.replace(token, (cfg[name] ?? ''));
-      }
-    }
-    return out;
-  }
-function buildHtmlMaterialDark(cfg){
-    const name=String(cfg.projectName||'Project'); const icon=String(cfg.projectIconUrl||'');
-    const date=String(cfg.updateDate||new Date().toISOString().slice(0,10));
-    const pre=String(cfg.preheader||`Weekly update for ${name}`);
-    const summary=String(cfg.updateSummary||''); const pct=clamp(cfg.progressPercent);
-    const whats=cfg.whatsNew||[]; const risks=cfg.risks||[]; const ws=cfg.workstreams||[]; const ms=cfg.milestones||[]; const track=clamp(cfg.milestoneTrackPercent);
-    const cta=cfg.cta||{}; const ctaLabel=cta.label||'Open'; const ctaUrl=cta.url||'#';
-    const wl=(!whats.length)?'<li>â€”</li>':whats.map(x=>`<li>${esc(x)}</li>`).join('');
-    const rl=(!risks.length)?'<li>â€”</li>':risks.map(x=>`<li>${esc(x)}</li>`).join('');
-    const wsl=!ws.length?'':ws.map(w=>{const p=clamp(w.percent);return `<div style="margin:8px 0"><div style="font:13px Segoe UI,Arial;color:#CDD3D8">${esc(w.label||'')}</div><div style="height:8px;background:#2a2a2a;border-radius:9999px;overflow:hidden"><div style="width:${p}%;height:8px;background:#00bcd4"></div></div></div>`}).join('');
-    const msl=!ms.length?'':`<table role="presentation" width="100%"><tr>${ms.map(m=>`<td align="center" style="width:${(100/ms.length).toFixed(2)}%"><div style="height:10px"><span style="display:inline-block;width:10px;height:10px;border-radius:9999px;background:#2a2a2a;border:1px solid #3a3a3a"></span></div><div style="font:12px Segoe UI,Arial;color:#CDD3D8;margin-top:6px">${esc(m.label||'')}</div><div style="font:11px Segoe UI,Arial;color:#9aa0a6">${esc(m.date||'')}</div></td>`).join('')}</tr></table>`;
-    const footer=cfg.footerHtml?cfg.footerHtml.replace(/\{\{PROJECT_NAME\}\}/g,esc(name)):(cfg.footerText?`<div style="font:12px Segoe UI,Arial;color:#7f8b95">${esc(cfg.footerText.replace(/\{\{PROJECT_NAME\}\}/g,name))}</div>`:`<div style="font:12px Segoe UI,Arial;color:#7f8b95">You are receiving this update about <span style="color:#C9D1D9">${esc(name)}</span>.</div>`);
-    return `<!DOCTYPE html><html xmlns="http://www.w3.org/1999/xhtml"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="dark"><title>${esc(name)} â€” Update</title></head><body style="margin:0;background:#0b0c0e;color:#e6e6e6"><div style="display:none;max-height:0;overflow:hidden;opacity:0">${esc(pre)}</div><table role="presentation" width="100%" style="background:#0b0c0e"><tr><td align="center" style="padding:24px"><table role="presentation" width="640" style="width:640px;max-width:640px;background:#121212;border-radius:16px"><tr><td style="padding:20px 24px 12px"><table width="100%"><tr><td width="52"><img src="${esc(icon)}" width="48" height="48" alt="${esc(name)} icon" style="display:block;border-radius:10px;background:#1e1e1e"></td><td style="padding-left:12px"><div style="font:12px Segoe UI,Arial;color:#b0b3b8;letter-spacing:.3px">Project Update</div><div style="font:700 24px/28px Segoe UI,Arial;color:#e6e6e6">${esc(name)}</div></td><td align="right" style="font:12px Segoe UI,Arial;color:#9aa0a6">${esc(date)}</td></tr></table></td></tr><tr><td style="padding:0 24px"><div style="height:1px;background:#222"></div></td></tr><tr><td style="padding:16px 24px 0"><div style="font:14px/20px Segoe UI,Arial;color:#dde3e8">${esc(summary).replace(/\n/g,'<br>')}</div></td></tr><tr><td style="padding:16px 24px 0"><div style="font:12px Segoe UI,Arial;color:#9aa0a6">Overall Progress: <span style="color:#e6e6e6;font-weight:600">${pct}%</span></div><div style="height:10px;background:#2a2a2a;border-radius:9999px;overflow:hidden;margin-top:8px"><div style="width:${pct}%;height:10px;background:#00bcd4"></div></div></td></tr><tr><td style="padding:16px 24px 0"><table role="presentation" width="100%" style="background:#1a1a1a;border-radius:12px"><tr><td style="padding:16px"><div style="font:600 14px/20px Segoe UI,Arial;color:#e6e6e6;margin-bottom:8px">Whatâ€™s New</div><ul style="padding-left:18px;margin:0;font:13px/20px Segoe UI,Arial;color:#cdd3d8">${wl}</ul></td></tr></table></td></tr><tr><td style="padding:12px 24px 0"><table role="presentation" width="100%" style="background:#1a1a1a;border-radius:12px"><tr><td style="padding:16px"><div style="font:600 14px/20px Segoe UI,Arial;color:#e6e6e6;margin-bottom:8px">Workstream Progress</div>${wsl}</td></tr></table></td></tr><tr><td style="padding:12px 24px 0"><table role="presentation" width="100%" style="background:#191919;border-radius:12px"><tr><td style="padding:16px"><div style="font:600 14px/20px Segoe UI,Arial;color:#e6e6e6;margin-bottom:8px">Milestone Track</div><div style="height:8px;background:#2a2a2a;border-radius:9999px;overflow:hidden"><div style="width:${track}%;height:8px;background:#00bcd4"></div></div><div style="margin-top:8px">${msl}</div></td></tr></table></td></tr><tr><td style="padding:12px 24px 0"><table role="presentation" width="100%" style="background:#191919;border-radius:12px"><tr><td style="padding:16px"><div style="font:600 14px/20px Segoe UI,Arial;color:#e6e6e6;margin-bottom:8px">Risks & Blockers</div><ul style="padding-left:18px;margin:0;font:13px/20px Segoe UI,Arial;color:#e0b2b2">${rl}</ul></td></tr></table></td></tr><tr><td style="padding:20px 24px 24px"><a href="${esc(ctaUrl)}" style="display:inline-block;min-width:220px;text-align:center;text-decoration:none;background:#00bcd4;color:#000;border-radius:6px;font:700 14px/44px Segoe UI,Arial">${esc(ctaLabel)}</a></td></tr><tr><td style="padding:0 24px 20px"><div style="height:1px;background:#222"></div></td></tr><tr><td style="padding:8px 24px 24px">${footer}</td></tr></table></td></tr></table></body></html>`;
-  }
-
-  const TEMPLATES=[
-    { id:"material-dark-update", name:"Material Dark — Project Update", description:"Dark Material look with progress bars and milestones.", sampleConfig:`{
-  "projectName":"Nebula CRM","projectIconUrl":"https://example.com/icon.png","updateDate":"2025-11-10","preheader":"Weekly update — highlights, risks, and next steps.","updateSummary":"We completed the onboarding flow revamp, improved sync reliability, and began the dashboard filters work.","progressPercent":68,"whatsNew":["Onboarding flow redesigned","API rate limiter tuned","Dashboard filter presets"],"risks":["Billing SDK upgrade pending","Export job CPU spikes"],"workstreams":[{"label":"Frontend Revamp","percent":80},{"label":"Sync Service","percent":62}],"milestoneTrackPercent":60,"milestones":[{"label":"Spec","date":"Sep 18"},{"label":"MVP","date":"Oct 10"},{"label":"Beta","date":"Oct 28"}],"cta":{"label":"View Dashboard","url":"https://example.com"},"footerText":"You are receiving this update about {{PROJECT_NAME}}." }`, buildHtml:buildHtmlMaterialDark },
-    { id:"mythic-light-hermes", name:"Mythic Light — Hermes Update", description:"Light theme with subtle Greek myth accents.", sampleConfig:`{
-  "projectName":"Project Hermes","projectIconUrl":"https://example.com/hermes-icon.png","updateDate":"2025-11-10","preheader":"Hermes dispatch — weekly status and next steps.","updateSummary":"Swift progress on the messaging relays and route optimization.","progressPercent":72,"sections":[{"title":"What’s New","items":["Relay pipeline refactor","Courier offline queue"]},{"title":"Headwinds","items":["Map tiles quota","Webhook retry cascades"]}],"workstreams":[{"label":"Relays","percent":80},{"label":"Courier App","percent":65}],"milestoneTrackPercent":55,"milestones":[{"label":"Spec","date":"Oct 12"},{"label":"Prototype","date":"Nov 08"},{"label":"Beta","date":"Dec 05"}],"cta":{"label":"Open Dispatch Console","url":"https://example.com/hermes"},"footerText":"Dispatch notice for {{PROJECT_NAME}}." }`, buildHtml:buildHtmlHermesLight },
-    { id:"brutalist-neon", name:"Brutalist Neon — Status Brief", description:"Unorthodox neon brutalist layout with ASCII bars and bold blocks.", sampleConfig:`{
-  "projectName":"Project Hermes","projectIconUrl":"https://example.com/hermes-icon.png","updateDate":"2025-11-10","preheader":"Status brief — neon brutalist.","updateSummary":"Blunt, bold, and bright: key signals and next actions.","progressPercent":64,"workstreams":[{"label":"Relays","percent":80},{"label":"Courier App","percent":58},{"label":"Routing","percent":31}],"milestoneTrackPercent":54,"milestones":[{"label":"Spec","date":"Oct 10"},{"label":"Proto","date":"Nov 05"},{"label":"Beta","date":"Dec 01"}],"cta":{"label":"OPEN CONSOLE","url":"https://example.com/hermes"},"accentColor":"#FF2D9B","accentAltColor":"#00FFD1","footerText":"Brief for {{PROJECT_NAME}} — manage prefs in your profile." }`, buildHtml:buildHtmlBrutalistNeon }
-  ];
-
-  // Storage v2
-  const STORE_KEY='emailBuilder.projects.v2'; let store={projects:{}};
-  const uid=()=>('p_'+Math.random().toString(36).slice(2,10)+Date.now().toString(36).slice(-4));
-  const loadStore=()=>{ try{const s=localStorage.getItem(STORE_KEY); store=s?JSON.parse(s):{projects:{}};}catch{store={projects:{}};} };
-  const saveStore=()=> localStorage.setItem(STORE_KEY, JSON.stringify(store));
-  const projectsList=()=>Object.values(store.projects).sort((a,b)=>(b.updatedAt||0)-(a.updatedAt||0));
+  // Store (projects with versions)
+  const STORE_KEY='emailBuilder.projects.v2';
+  let store={ projects:{} };
+  const uid=()=>('p_'+Math.random().toString(36).slice(2,9)+Date.now().toString(36).slice(-4));
+  const loadStore=()=>{ try{ const s=localStorage.getItem(STORE_KEY); store=s?JSON.parse(s):{projects:{}}; }catch{ store={projects:{}}; } };
+  const saveStore=()=>{ localStorage.setItem(STORE_KEY, JSON.stringify(store)); };
 
   // App state
-  let currentProjectId=null, currentVersionId=null, currentConfig={};
+  let currentProjectId=null; let currentVersionId=null; let currentConfig={};
 
-  // DOM refs
-  const dashboardView=$('#dashboard-view'), projectView=$('#project-view');
-  const tmplList=$('#tmpl-list'), projList=$('#proj-list');
+  // Elements
+  const dashboardView=$('#dashboard-view');
+  const projectView=$('#project-view');
+  const tmplList=$('#tmpl-list');
+  const projList=$('#proj-list');
   const projNameInput=$('#proj-name-input');
-  const versionList=$('#version-list'), formPane=$('#form-pane'), jsonPane=$('#json-pane'), editor=$('#config-editor');
-  const livePreview=$('#live-preview'), projTemplateName=$('#proj-template-name'), statusBar=$('#status-bar');
+  const versionStrip=$('#version-strip');
+  const formPane=$('#form-pane');
+  const jsonPane=$('#json-pane');
+  const editor=$('#config-editor');
+  const livePreview=$('#live-preview');
+  const projTemplateName=$('#proj-template-name');
+  const statusBar=$('#status-bar');
 
-  const writePreview=(html)=>{ try{const d=livePreview.contentDocument; d.open(); d.write(html); d.close();}catch{}}
-  let prevTimer=null; const schedulePreview=()=>{ clearTimeout(prevTimer); prevTimer=setTimeout(()=>{ writePreview(buildCurrentHtml()); },80); };
-  const getTemplate=()=>{ const p=store.projects[currentProjectId]; return TEMPLATES.find(t=>t.id===p.templateId)||TEMPLATES[0]; };
+  // Preview
+  const writePreview=(html)=>{ try{const d=livePreview.contentDocument; d.open(); d.write(html); d.close();}catch{} };
+  let prevTimer=null;
+  const schedulePreview=()=>{ clearTimeout(prevTimer); prevTimer=setTimeout(()=>{ writePreview(buildCurrentHtml()); }, 60); };
 
-\ versions||[]).length}\ versions</div></div>`; const act=document.createElement('div'); act.className='controls'; const open=document.createElement('button'); open.className='btn'; open.textContent='Open'; open.addEventListener('click',()=>openProject(p.id)); const del=document.createElement('button'); del.className='btn ghost'; del.textContent='Delete'; del.addEventListener('click',()=>{ if(confirm('Delete project?')){ delete store.projects[p.id]; saveStore(); renderDashboard(); } });act.appendChild(open); act.appendChild(del); item.appendChild(act); projList.appendChild(item); });}
-\ versions:[{id:vid,name:'v1',config:cfg,isDraft:true,createdAt:now,updatedAt:now}]}; saveStore(); openProject(id,vid); }
-\ versions||[]).slice().sort((a,b)=>(b.updatedAt||0)-(a.updatedAt||0));\ versions.find(x=>x.id===vid);\ versions.find(x=>x.id===currentVersionId); v.config=currentConfig; v.updatedAt=Date.now(); p.updatedAt=v.updatedAt; saveStore(); renderFormFromConfig(currentConfig, p.templateId); schedulePreview(); pfile.value=''; }; r.readAsText(f); }; } }
-\ versionstrip(){\ versions||[]).sort((a,b)=>(a.createdAt||0)-(b.createdAt||0)).forEach(v=>{ const chip=document.createElement('button'); chip.className='chip'+(v.id===currentVersionId?' active':''); chip.type='button'; chip.textContent=v.name; chip.title=new Date(v.updatedAt).toLocaleString(); chip.addEventListener('click',()=>openProject(currentProjectId, v.id)); cont.appendChild(chip); });}
-\ versionstrip();\ versions||[]).sort((a,b)=>(b.updatedAt||0)-(a.updatedAt||0)).forEach(v=>{\ versionstrip();\ versions.push(nv);\ versionstrip();\ versions.findIndex(x=>x.id===v.id);\ versions.splice(ix,1);\ versions.length){\ versions[0].id);}\ versionstrip();\ versionstrip(); }
+  // Token utilities
+  const TOKEN_RE=/{{\s*([A-Za-z0-9_.-]+)\s*}}/g;
+  function findTokens(html){ const set=new Set(); let m; while((m=TOKEN_RE.exec(html))){ set.add(m[1]); } return set; }
+  function extractPlaceholders(html){
+    const tokens=findTokens(html); const map={}; const groups={};
+    for(const t of tokens){ const mm=t.match(/^(.*)_([0-9]+)$/); if(mm){ const base=mm[1]; const i=parseInt(mm[2],10)-1; if(!groups[base]) groups[base]=[]; groups[base][i]=''; } else { map[t]=''; } }
+    for(const base in groups){ map[base]=groups[base].map(v=>v||''); }
+    // Default images for anything that looks like an image/icon token
+    for(const k in map){ if(typeof map[k]==='string' && /ICON|IMAGE/i.test(k)) map[k]=DEFAULT_IMG; if(Array.isArray(map[k]) && /ICON|IMAGE/i.test(k)) map[k]=map[k].map(()=>DEFAULT_IMG); }
+    return map;
+  }
 
+  // Canonical config from tokens
+  function toCanonicalConfig(html){
+    const raw=extractPlaceholders(html); const tokens=findTokens(html); const cfg={};
+    const get=(...names)=>{ for(const n of names){ if(n in raw) return raw[n]; } return undefined; };
+    const str=(...names)=>String(get(...names)||'');
+    const num=(...names)=>clamp(get(...names)||0);
+    // Basics
+    cfg.projectName=str('PROJECT_NAME','projectName');
+    cfg.projectIconUrl=str('PROJECT_ICON_URL','projectIconUrl'); if(!cfg.projectIconUrl) cfg.projectIconUrl=DEFAULT_IMG;
+    cfg.updateDate=str('UPDATE_DATE','updateDate');
+    cfg.preheader=str('PREHEADER','preheader');
+    cfg.updateSummary=str('UPDATE_SUMMARY','updateSummary');
+    cfg.progressPercent=num('PROGRESS_PERCENT','progressPercent');
+    // Lists
+    cfg.whatsNew=(get('WHATS_NEW_ITEM','whatsNew')||[]).map(x=>String(x||''));
+    cfg.risks=(get('RISK_ITEM','risks')||[]).map(x=>String(x||''));
+    // Workstreams from TRACK_n_LABEL/PERCENT or workstreams_label_n + workstreams_percent_n
+    const ws=[]; let i=1; while(true){
+      const a=`TRACK_${i}_LABEL`, b=`TRACK_${i}_PERCENT`, a2=`workstreams_label_${i}`, b2=`workstreams_percent_${i}`;
+      const label=(a in raw?raw[a]:a2 in raw?raw[a2]:null);
+      const pct=(b in raw?raw[b]:b2 in raw?raw[b2]:null);
+      if(label==null && pct==null){ break; }
+      ws.push({ label:String((Array.isArray(label)?label[0]:label)||''), percent:clamp((Array.isArray(pct)?pct[0]:pct)||0) });
+      i++;
+    }
+    cfg.workstreams=ws;
+    // Milestones from MILESTONE_n and MILESTONE_n_DATE or milestone_label_n, milestone_date_n
+    const ms=[]; i=1; while(true){ const la=`MILESTONE_${i}`, da=`MILESTONE_${i}_DATE`, la2=`milestone_label_${i}`, da2=`milestone_date_${i}`;
+      const l=(la in raw?raw[la]:la2 in raw?raw[la2]:null); const d=(da in raw?raw[da]:da2 in raw?raw[da2]:null);
+      if(l==null && d==null) break; ms.push({ label:String((Array.isArray(l)?l[0]:l)||''), date:String((Array.isArray(d)?d[0]:d)||'') }); i++; }
+    cfg.milestones=ms;
+    // CTA
+    cfg.cta={ label:str('CTA_LABEL','cta_label','cta.label'), url:str('CTA_URL','cta_url','cta.url') };
+    // Footer
+    cfg.footerText=str('FOOTER_TEXT','footerText');
+    // Contributors footer (CONTRIB_n_NAME, CONTRIB_n_IMAGE_URL)
+    const contributors=[]; i=1; while(true){ const n=`CONTRIB_${i}_NAME`, u=`CONTRIB_${i}_IMAGE_URL`; if(!(n in raw) && !(u in raw)) break; contributors.push({ name:String(raw[n]||''), imageUrl:String(raw[u]||DEFAULT_IMG) }); i++; }
+    if(contributors.length) cfg.contributors=contributors;
+    return cfg;
+  }
+
+  // Build final HTML by replacing tokens from canonical config
+  function buildFromTemplateHtml(html, cfg){
+    const tokens=[...findTokens(html)]; const map={};
+    const put=(name,val)=>{ map[name]=String(val==null?'':val); };
+    // Basics
+    put('PROJECT_NAME', cfg.projectName);
+    put('PROJECT_ICON_URL', cfg.projectIconUrl||DEFAULT_IMG);
+    put('UPDATE_DATE', cfg.updateDate);
+    put('PREHEADER', cfg.preheader);
+    put('UPDATE_SUMMARY', cfg.updateSummary);
+    put('PROGRESS_PERCENT', clamp(cfg.progressPercent));
+    // CTA / Footer
+    if(cfg.cta){ put('CTA_LABEL', cfg.cta.label||'Open'); put('CTA_URL', cfg.cta.url||'#'); }
+    if('footerText' in cfg){ put('FOOTER_TEXT', cfg.footerText); }
+    // Lists
+    const wn = cfg.whatsNew||[]; const rk = cfg.risks||[];
+    for(let i=0;i<Math.max(wn.length,3);i++) put(`WHATS_NEW_ITEM_${i+1}`, wn[i]||'');
+    for(let i=0;i<Math.max(rk.length,2);i++) put(`RISK_ITEM_${i+1}`, rk[i]||'');
+    // Workstreams
+    const ws=cfg.workstreams||[]; for(let i=0;i<Math.max(ws.length,3);i++){ const w=ws[i]||{}; put(`TRACK_${i+1}_LABEL`, w.label||''); put(`TRACK_${i+1}_PERCENT`, clamp(w.percent||0)); }
+    // Milestones
+    const ms=cfg.milestones||[]; for(let i=0;i<Math.max(ms.length,3);i++){ const m=ms[i]||{}; put(`MILESTONE_${i+1}`, m.label||''); put(`MILESTONE_${i+1}_DATE`, m.date||''); }
+    // Contributors
+    const cs=cfg.contributors||[]; for(let i=0;i<cs.length;i++){ const c=cs[i]||{}; put(`CONTRIB_${i+1}_NAME`, c.name||''); put(`CONTRIB_${i+1}_IMAGE_URL`, c.imageUrl||DEFAULT_IMG); }
+    // Replace
+    let out=html; for(const name of tokens){ const re=new RegExp('{{\\s*'+name.replace(/[-/\\^$*+?.()|[\]{}]/g,'\\$&')+'\\s*}}','g'); out=out.replace(re, esc(map[name]??'')); }
+    return out;
+  }
+
+  function buildCurrentHtml(){ const p=store.projects[currentProjectId]; if(!p) return '<!doctype html><meta charset="utf-8"><title>Preview</title>'; if(p.templateHtml) return buildFromTemplateHtml(p.templateHtml, currentConfig); return '<!doctype html><meta charset="utf-8"><body style="font:14px Segoe UI,Arial;padding:16px">No template loaded</body>'; }
+
+  // Persistence helpers
+  function persistCurrentConfig(){ const p=store.projects[currentProjectId]; if(!p) return; const v=p.versions.find(x=>x.id===currentVersionId); if(!v) return; v.config=currentConfig; v.updatedAt=Date.now(); p.updatedAt=v.updatedAt; saveStore(); }
+
+  // UI builders
+  function h3(label){ const h=document.createElement('h3'); h.textContent=label; h.style.fontSize='14px'; h.style.color='#cfd5db'; h.style.margin='8px 0'; return h; }
   function deepSet(obj,path,val){ const parts=path.split('.'); let cur=obj; for(let i=0;i<parts.length-1;i++){ const k=parts[i]; if(cur[k]==null||typeof cur[k]!=='object') cur[k]={}; cur=cur[k]; } cur[parts[parts.length-1]]=val; }
   function inferType(key,val){ if(Array.isArray(val)) return 'list'; if(typeof val==='number') return key.toLowerCase().includes('percent')?'percent':'number'; if(typeof val==='boolean') return 'checkbox'; if(typeof val==='string'){ const lk=key.toLowerCase(); if(lk.includes('url')||lk.includes('icon')) return 'image'; if(lk.includes('summary')||lk.includes('footer')) return 'textarea'; return 'text'; } if(typeof val==='object'&&val) return 'group'; return 'text'; }
-  function buildPrimitiveInput(path,label,type,value,onChange){ const wrap=document.createElement('div'); wrap.style.marginBottom='10px'; const id='f_'+path.replace(/[^a-z0-9]+/gi,'_')+'_'+Math.random().toString(36).slice(2,6); const lab=document.createElement('label'); lab.className='muted'; lab.textContent=label; lab.htmlFor=id; wrap.appendChild(lab); if(type==='textarea'){ const ta=document.createElement('textarea'); ta.id=id; ta.className='input'; ta.style.minHeight='80px'; ta.value=value||''; ta.addEventListener('input',()=>onChange(ta.value)); wrap.appendChild(ta); return wrap; } if(type==='checkbox'){ const cb=document.createElement('input'); cb.id=id; cb.type='checkbox'; cb.checked=!!value; cb.addEventListener('change',()=>onChange(cb.checked)); wrap.appendChild(cb); return wrap; } if(type==='percent'){ const row=document.createElement('div'); row.style.display='flex'; row.style.gap='8px'; const num=document.createElement('input'); num.id=id; num.type='number'; num.className='input'; num.min='0'; num.max='100'; num.step='1'; num.style.maxWidth='120px'; num.value=(value??0); num.addEventListener('input',()=>onChange(clamp(num.value))); const rng=document.createElement('input'); rng.type='range'; rng.min='0'; rng.max='100'; rng.step='1'; rng.value=(value??0); rng.setAttribute('aria-labelledby',id); rng.addEventListener('input',()=>{ num.value=rng.value; onChange(clamp(rng.value)); });row.appendChild(num); row.appendChild(rng); wrap.appendChild(row); return wrap; } if(type==='image'){ const grp=document.createElement('div'); grp.className='controls'; grp.setAttribute('role','group'); grp.setAttribute('aria-label','Image input mode'); const urlBtn=document.createElement('button'); urlBtn.className='btn'; urlBtn.textContent='URL'; const svgBtn=document.createElement('button'); svgBtn.className='btn ghost'; svgBtn.textContent='SVG code'; const genBtn=document.createElement('button'); genBtn.className='btn ghost'; genBtn.textContent='SVG from name'; const url=document.createElement('input'); url.id=id; url.type='text'; url.className='input'; url.placeholder='https://...'; url.value=value||''; url.style.marginTop='6px'; const svg=document.createElement('textarea'); svg.className='input'; svg.style.display='none'; svg.style.minHeight='100px'; svg.placeholder='<svg>...</svg>'; const prev=document.createElement('img'); prev.alt='preview'; prev.style.width='44px'; prev.style.height='44px'; prev.style.borderRadius='8px'; prev.style.border='1px solid #2a2a2a'; prev.style.marginLeft='8px'; function useURL(){ urlBtn.className='btn'; svgBtn.className='btn ghost'; url.style.display=''; svg.style.display='none'; prev.src=url.value; onChange(url.value);} function useSVG(){ urlBtn.className='btn ghost'; svgBtn.className='btn'; url.style.display='none'; svg.style.display=''; const v=svg.value.trim(); const data=v?dataUriFromSvg(v):''; prev.src=data; onChange(data);} function genSVG(){ const code=`<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"128\" height=\"128\"><rect width=\"100%\" height=\"100%\" fill=\"#00FFD1\"/><text x=\"50%\" y=\"54%\" dy=\".1em\" text-anchor=\"middle\" font-family=\"Segoe UI, Arial, sans-serif\" font-size=\"56\" fill=\"#000\">${esc((String(currentConfig.projectName||'P')||'P').charAt(0).toUpperCase())}</text></svg>`; svg.value=code; useSVG(); } url.addEventListener('input',()=>{ prev.src=url.value; onChange(url.value);});svg.addEventListener('input',()=>useSVG()); urlBtn.addEventListener('click',e=>{e.preventDefault();useURL();});svgBtn.addEventListener('click',e=>{e.preventDefault();useSVG();});genBtn.addEventListener('click',e=>{e.preventDefault();genSVG();});grp.appendChild(urlBtn); grp.appendChild(svgBtn); grp.appendChild(genBtn); grp.appendChild(prev); wrap.appendChild(grp); wrap.appendChild(url); wrap.appendChild(svg); useURL(); return wrap; } const inp=document.createElement('input'); inp.id=id; inp.type=(type==='number'?'number':'text'); inp.className='input'; inp.value=(value??''); inp.addEventListener('input',()=>onChange(inp.value)); wrap.appendChild(inp); return wrap; }
-  function buildListPrimitive(path,label,arr,onChange){ const wrap=document.createElement('div'); const title=document.createElement('div'); title.className='muted'; title.textContent=label; wrap.appendChild(title); const list=document.createElement('div'); wrap.appendChild(list); function render(){ list.innerHTML=''; (arr||[]).forEach((val,idx)=>{ const row=document.createElement('div'); row.style.display='flex'; row.style.gap='8px'; row.style.margin='6px 0'; const inp=document.createElement('input'); inp.type='text'; inp.className='input'; inp.style.flex='1'; inp.value=val||''; inp.addEventListener('input',()=>{ arr[idx]=inp.value; onChange(arr);});const del=document.createElement('button'); del.className='btn ghost'; del.innerHTML='<svg style="width:14px;height:14px;vertical-align:-2px;margin-right:6px" viewBox="0 0 24 24" fill="currentColor"><path d="M6 7h12l-1 14H7L6 7zm3-3h6l1 2H8l1-2z"/></svg>Remove'; del.addEventListener('click',e=>{e.preventDefault();arr.splice(idx,1);onChange(arr);render();});row.appendChild(inp); row.appendChild(del); list.appendChild(row);});} const add=document.createElement('button'); add.className='btn secondary'; add.innerHTML='<svg style="width:14px;height:14px;vertical-align:-2px;margin-right:6px" viewBox="0 0 24 24" fill="currentColor"><path d="M11 11V5h2v6h6v2h-6v6h-2v-6H5v-2z"/></svg>Add Item'; add.addEventListener('click',e=>{e.preventDefault();arr.push('');onChange(arr);render();});render(); wrap.appendChild(add); return wrap; }
-  function buildListObjects(path,label,arr,itemSpec,onChange){ const wrap=document.createElement('div'); const title=document.createElement('div'); title.className='muted'; title.textContent=label; wrap.appendChild(title); const listDiv=document.createElement('div'); wrap.appendChild(listDiv); function render(){ listDiv.innerHTML=''; (arr||[]).forEach((obj,idx)=>{ const card=document.createElement('div'); card.className='panel'; card.style.padding='12px'; card.style.margin='8px 0'; const head=document.createElement('div'); head.className='muted'; head.textContent=`Item ${idx+1}`; card.appendChild(head); const grid=document.createElement('div'); grid.style.display='grid'; grid.style.gridTemplateColumns='repeat(auto-fit,minmax(160px,1fr))'; grid.style.gap='8px'; itemSpec.forEach(f=>{ const key=f.path; const t=f.type||inferType(key,obj[key]); const val=obj[key]; const ctl=buildPrimitiveInput(`${path}.${idx}.${key}`, f.label||key, t, val, nv=>{ obj[key]=(t==='percent'?clamp(nv):(t==='number'?(+nv||0):(t==='checkbox'?!!nv:nv))); onChange(arr);});grid.appendChild(ctl);});const del=document.createElement('button'); del.className='btn ghost'; del.innerHTML='<svg style="width:14px;height:14px;vertical-align:-2px;margin-right:6px" viewBox="0 0 24 24" fill="currentColor"><path d="M6 7h12l-1 14H7L6 7zm3-3h6l1 2H8l1-2z"/></svg>Remove'; del.addEventListener('click',e=>{e.preventDefault();arr.splice(idx,1);onChange(arr);render();});card.appendChild(grid); card.appendChild(del); listDiv.appendChild(card);});} const add=document.createElement('button'); add.className='btn secondary'; add.innerHTML='<svg style="width:14px;height:14px;vertical-align:-2px;margin-right:6px" viewBox="0 0 24 24" fill="currentColor"><path d="M11 11V5h2v6h6v2h-6v6h-2v-6H5v-2z"/></svg>Add Item'; add.addEventListener('click',e=>{e.preventDefault();arr.push({});onChange(arr);render();});render(); wrap.appendChild(add); return wrap; }
-  function renderFormFromConfig(cfg, templateId){ const container=$('#dynamic-form'); container.innerHTML=''; const scalarOrder=['projectName','projectIconUrl','bannerUrl','updateDate','preheader','updateSummary','progressPercent','sprintNumber','etaDate','statusLabel','milestoneTrackPercent','currentMilestoneIndex','accentColor','accentAltColor','spotlight','footerText','footerHtml']; const scalars=document.createElement('div'); scalarOrder.forEach(k=>{ if(k in cfg){ const t=inferType(k,cfg[k]); const ctl=buildPrimitiveInput(k,k,t,cfg[k],nv=>{ if(t==='percent') nv=clamp(nv); deepSet(currentConfig,k,nv); editor.value=JSON.stringify(currentConfig,null,2); schedulePreview();});scalars.appendChild(ctl);} });if(scalars.childNodes.length){ const sec=document.createElement('div'); const h=document.createElement('h3'); h.textContent='Basics'; h.style.fontSize='14px'; h.style.color='#cfd5db'; h.style.margin='4px 0 8px'; sec.appendChild(h); sec.appendChild(scalars); container.appendChild(sec);} [['statusChip','Status Chip'],['cta','Call To Action'],['quote','Quote']].forEach(([key,label])=>{ if(cfg[key]&&typeof cfg[key]==='object'){ const sec=document.createElement('div'); const h=document.createElement('h3'); h.textContent=label; h.style.fontSize='14px'; h.style.color='#cfd5db'; h.style.margin='8px 0'; sec.appendChild(h); const grid=document.createElement('div'); grid.style.display='grid'; grid.style.gridTemplateColumns='repeat(auto-fit,minmax(160px,1fr))'; grid.style.gap='8px'; Object.keys(cfg[key]).forEach(sub=>{ const p=`${key}.${sub}`; const t=inferType(sub,cfg[key][sub]); const ctl=buildPrimitiveInput(p,sub,t,cfg[key][sub],nv=>{ if(t==='percent') nv=clamp(nv); deepSet(currentConfig,p,nv); editor.value=JSON.stringify(currentConfig,null,2); schedulePreview();});grid.appendChild(ctl);});sec.appendChild(grid); container.appendChild(sec);} });[['whatsNew','Whatâ€™s New'],['risks','Risks & Blockers']].forEach(([key,label])=>{ if(Array.isArray(cfg[key])){ const wrap=buildListPrimitive(key,label,cfg[key],arr=>{ deepSet(currentConfig,key,arr); editor.value=JSON.stringify(currentConfig,null,2); schedulePreview();});const sec=document.createElement('div'); const h=document.createElement('h3'); h.textContent=label; h.style.fontSize='14px'; h.style.color='#cfd5db'; h.style.margin='8px 0'; sec.appendChild(h); sec.appendChild(wrap); container.appendChild(sec);} });if(Array.isArray(cfg.workstreams)){ const wrap=buildListObjects('workstreams','Workstreams',cfg.workstreams,[{path:'label',label:'Label',type:'text'},{path:'percent',label:'Percent',type:'percent'}],arr=>{ deepSet(currentConfig,'workstreams',arr); editor.value=JSON.stringify(currentConfig,null,2); schedulePreview();});const sec=document.createElement('div'); const h=document.createElement('h3'); h.textContent='Workstreams'; h.style.fontSize='14px'; h.style.color='#cfd5db'; h.style.margin='8px 0'; sec.appendChild(h); sec.appendChild(wrap); container.appendChild(sec);} if(Array.isArray(cfg.milestones)){ const wrap=buildListObjects('milestones','Milestones',cfg.milestones,[{path:'label',label:'Label',type:'text'},{path:'date',label:'Date',type:'text'},{path:'current',label:'Current',type:'checkbox'}],arr=>{ deepSet(currentConfig,'milestones',arr); editor.value=JSON.stringify(currentConfig,null,2); schedulePreview();});const sec=document.createElement('div'); const h=document.createElement('h3'); h.textContent='Milestones'; h.style.fontSize='14px'; h.style.color='#cfd5db'; h.style.margin='8px 0'; sec.appendChild(h); sec.appendChild(wrap); container.appendChild(sec);} if(Array.isArray(cfg.contributors)){ const wrap=buildListObjects('contributors','Contributors',cfg.contributors,[{path:'name',label:'Name',type:'text'},{path:'imageUrl',label:'Image',type:'image'}],arr=>{ deepSet(currentConfig,'contributors',arr); editor.value=JSON.stringify(currentConfig,null,2); schedulePreview();});const sec=document.createElement('div'); const h=document.createElement('h3'); h.textContent='Contributors'; h.style.fontSize='14px'; h.style.color='#cfd5db'; h.style.margin='8px 0'; sec.appendChild(h); sec.appendChild(wrap); container.appendChild(sec);} }
+  function buildPrimitiveInput(path,label,type,value,onChange){ const wrap=document.createElement('div'); wrap.style.marginBottom='10px'; const id='f_'+path.replace(/[^a-z0-9]+/gi,'_')+'_'+Math.random().toString(36).slice(2,6); const lab=document.createElement('label'); lab.className='muted'; lab.textContent=label; lab.htmlFor=id; wrap.appendChild(lab); if(type==='textarea'){ const ta=document.createElement('textarea'); ta.id=id; ta.className='input'; ta.style.minHeight='80px'; ta.value=value||''; ta.addEventListener('input',()=>{ onChange(ta.value); persistCurrentConfig(); schedulePreview(); }); wrap.appendChild(ta); return wrap; } if(type==='checkbox'){ const cb=document.createElement('input'); cb.id=id; cb.type='checkbox'; cb.checked=!!value; cb.addEventListener('change',()=>{ onChange(cb.checked); persistCurrentConfig(); schedulePreview(); }); wrap.appendChild(cb); return wrap; } if(type==='percent'){ const row=document.createElement('div'); row.style.display='flex'; row.style.gap='8px'; const num=document.createElement('input'); num.id=id; num.type='number'; num.className='input'; num.min='0'; num.max='100'; num.step='1'; num.style.maxWidth='120px'; num.value=(value??0); num.addEventListener('input',()=>{ onChange(clamp(num.value)); persistCurrentConfig(); schedulePreview(); }); const rng=document.createElement('input'); rng.type='range'; rng.min='0'; rng.max='100'; rng.step='1'; rng.value=(value??0); rng.setAttribute('aria-labelledby',id); rng.addEventListener('input',()=>{ num.value=rng.value; onChange(clamp(rng.value)); persistCurrentConfig(); schedulePreview(); }); row.appendChild(num); row.appendChild(rng); wrap.appendChild(row); return wrap; } if(type==='image'){ const grp=document.createElement('div'); grp.className='controls'; grp.setAttribute('role','group'); grp.setAttribute('aria-label','Image input mode'); const urlBtn=document.createElement('button'); urlBtn.className='btn'; urlBtn.textContent='URL'; const svgBtn=document.createElement('button'); svgBtn.className='btn ghost'; svgBtn.textContent='SVG code'; const genBtn=document.createElement('button'); genBtn.className='btn ghost'; genBtn.textContent='SVG from name'; const url=document.createElement('input'); url.id=id; url.type='text'; url.className='input'; url.placeholder='https://...'; url.value=value||''; url.style.marginTop='6px'; const svg=document.createElement('textarea'); svg.className='input'; svg.style.display='none'; svg.style.minHeight='100px'; svg.placeholder='<svg>...</svg>'; const prev=document.createElement('img'); prev.alt='preview'; prev.style.width='44px'; prev.style.height='44px'; prev.style.borderRadius='8px'; prev.style.border='1px solid #2a2a2a'; prev.style.marginLeft='8px'; function useURL(){ urlBtn.className='btn'; svgBtn.className='btn ghost'; url.style.display=''; svg.style.display='none'; prev.src=url.value||DEFAULT_IMG; onChange(url.value||DEFAULT_IMG); persistCurrentConfig(); schedulePreview(); } function useSVG(){ urlBtn.className='btn ghost'; svgBtn.className='btn'; url.style.display='none'; svg.style.display=''; const v=svg.value.trim(); const data=v?dataUriFromSvg(v):DEFAULT_IMG; prev.src=data; onChange(data); persistCurrentConfig(); schedulePreview(); } function genSVG(){ const ch=(String(currentConfig.projectName||'A').trim()[0]||'A').toUpperCase(); const code=`<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128"><rect width="100%" height="100%" fill="#00FFD1"/><text x="50%" y="54%" dy=".1em" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="56" fill="#000">${esc(ch)}</text></svg>`; svg.value=code; useSVG(); } url.addEventListener('input',()=>useURL()); svg.addEventListener('input',()=>useSVG()); urlBtn.addEventListener('click',e=>{e.preventDefault();useURL();}); svgBtn.addEventListener('click',e=>{e.preventDefault();useSVG();}); genBtn.addEventListener('click',e=>{e.preventDefault();genSVG();}); grp.appendChild(urlBtn); grp.appendChild(svgBtn); grp.appendChild(genBtn); grp.appendChild(prev); wrap.appendChild(grp); wrap.appendChild(url); wrap.appendChild(svg); useURL(); return wrap; } const inp=document.createElement('input'); inp.id=id; inp.type=(type==='number'?'number':'text'); inp.className='input'; inp.value=(value??''); inp.addEventListener('input',()=>{ onChange(inp.value); persistCurrentConfig(); schedulePreview(); }); wrap.appendChild(inp); return wrap; }
+  function buildListPrimitive(path,label,arr,onChange){ const wrap=document.createElement('div'); const list=document.createElement('div'); list.className='list'; const add=document.createElement('button'); add.className='btn ghost'; add.textContent='Add'; add.addEventListener('click',e=>{ e.preventDefault(); const next=[...arr,'']; onChange(next); editor.value=JSON.stringify(currentConfig,null,2); persistCurrentConfig(); schedulePreview(); render(); }); function render(){ list.innerHTML=''; (arr||[]).forEach((v,idx)=>{ const row=document.createElement('div'); row.className='list-item'; const t=document.createElement('input'); t.type='text'; t.className='input'; t.value=v||''; t.style.flex='1'; t.addEventListener('input',()=>{ const next=[...arr]; next[idx]=t.value; onChange(next); editor.value=JSON.stringify(currentConfig,null,2); persistCurrentConfig(); schedulePreview(); }); const del=document.createElement('button'); del.className='btn ghost'; del.textContent='Remove'; del.addEventListener('click',e=>{ e.preventDefault(); const next=[...arr]; next.splice(idx,1); onChange(next); editor.value=JSON.stringify(currentConfig,null,2); persistCurrentConfig(); schedulePreview(); render(); }); row.appendChild(t); row.appendChild(del); list.appendChild(row); }); } render(); wrap.appendChild(list); wrap.appendChild(add); return wrap; }
+  function buildListObjects(path,label,arr,fields,onChange){ const wrap=document.createElement('div'); const list=document.createElement('div'); list.className='list'; const add=document.createElement('button'); add.className='btn ghost'; add.textContent='Add'; add.addEventListener('click',e=>{ e.preventDefault(); const blank={}; fields.forEach(f=>blank[f.path]=f.type==='percent'?0:(f.type==='checkbox'?false:(f.type==='image'?DEFAULT_IMG:''))); const next=[...arr,blank]; onChange(next); editor.value=JSON.stringify(currentConfig,null,2); persistCurrentConfig(); schedulePreview(); render(); }); function render(){ list.innerHTML=''; (arr||[]).forEach((obj,idx)=>{ const row=document.createElement('div'); row.className='list-item'; row.style.flexDirection='column'; const grid=document.createElement('div'); grid.style.display='grid'; grid.style.gridTemplateColumns='repeat(auto-fit,minmax(160px,1fr))'; grid.style.gap='8px'; fields.forEach(f=>{ const ctl=buildPrimitiveInput(`${path}.${idx}.${f.path}`, f.label, f.type, obj[f.path], v=>{ const next=[...arr]; next[idx]={...obj,[f.path]:v}; onChange(next); editor.value=JSON.stringify(currentConfig,null,2); }); grid.appendChild(ctl); }); const actions=document.createElement('div'); actions.className='controls'; const del=document.createElement('button'); del.className='btn ghost'; del.textContent='Remove'; del.addEventListener('click',e=>{ e.preventDefault(); const next=[...arr]; next.splice(idx,1); onChange(next); editor.value=JSON.stringify(currentConfig,null,2); persistCurrentConfig(); schedulePreview(); render(); }); actions.appendChild(del); row.appendChild(grid); row.appendChild(actions); list.appendChild(row); }); } render(); wrap.appendChild(list); wrap.appendChild(add); return wrap; }
 
-  // Wire actions
-  $('#back-dashboard').addEventListener('click',()=>renderDashboard());
-\ versions?.length||0)+1}`,config:base,isDraft:true,createdAt:Date.now(),updatedAt:Date.now()};\ versions.push(v);\ versions list
-\ versions');
-  if (toggleBtn) {
-    toggleBtn.addEventListener('click', ()=>{
-      const list = document.getElementById('version-list');
-      const expanded = toggleBtn.getAttribute('aria-expanded') === 'true';
-      toggleBtn.setAttribute('aria-expanded', expanded ? 'false' : 'true');
-      toggleBtn.textContent = expanded ? 'Expand' : 'Collapse';
-      if (list) list.style.display = expanded ? 'none' : '';
-    });}
-\ versions.find(x=>x.id===currentVersionId);\ versions.find(x=>x.id===currentVersionId); v.config=currentConfig; v.updatedAt=Date.now(); p.updatedAt=v.updatedAt; saveStore(); renderFormFromConfig(currentConfig, p.templateId); schedulePreview(); pfile.value=''; }; r.readAsText(f); }; } statusBar.textContent='Synced from JSON'; setTimeout(()=>statusBar.textContent='',1200);}catch(e){ alert('Invalid JSON: '+e.message);} });`,`
-  $('#copy-html').addEventListener('click',async()=>{ try{ await navigator.clipboard.writeText(buildCurrentHtml()); statusBar.textContent='HTML copied'; setTimeout(()=>statusBar.textContent='',1200);}catch(e){ alert('Copy failed: '+e.message);} });$('#download-html').addEventListener('click',()=>{ const html=buildCurrentHtml(); const name=(store.projects[currentProjectId]?.name||'project').toLowerCase().replace(/[^a-z0-9]+/g,'-'); const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([html],{type:'text/html;charset=utf-8'})); a.download=`${name}-${Date.now()}.html`; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),1200); });$('#proj-export').addEventListener('click',()=>{ const p=store.projects[currentProjectId]; const data=JSON.stringify(p,null,2); const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([data],{type:'application/json'})); a.download=`${(p.name||'project').toLowerCase().replace(/[^a-z0-9]+/g,'-')}.json`; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),1200); });$('#proj-import').addEventListener('click',()=> $('#proj-import-file').click());
-\ versions)){ store.projects[p.id]=p; saveStore(); openProject(p.id);} else alert('Invalid project JSON'); }catch(e){ alert('Import failed: '+e.message);} $('#proj-import-file').value=''; }; r.readAsText(f); });$('#proj-delete').addEventListener('click',()=>{ if(confirm('Delete entire project?')){ delete store.projects[currentProjectId]; saveStore(); renderDashboard(); }});projNameInput.addEventListener('input',()=>{ const p=store.projects[currentProjectId]; p.name=projNameInput.value||p.name; p.updatedAt=Date.now(); saveStore(); });editor.addEventListener('input',()=>{});// Init
-  loadStore(); try{ loadTemplateRegistry().then(renderDashboard).catch(()=>renderDashboard()); }catch(e){ renderDashboard(); }
+  function renderFormFromConfig(cfg){ const container=$('#dynamic-form'); if(!container) return; container.innerHTML='';
+    // Basics
+    const basics=document.createElement('div'); ['projectName','projectIconUrl','updateDate','preheader','updateSummary','progressPercent'].forEach(k=>{ if(k in cfg){ const t=inferType(k,cfg[k]); const ctl=buildPrimitiveInput(k,k,t,cfg[k],nv=>{ if(t==='percent') nv=clamp(nv); deepSet(currentConfig,k,nv); editor.value=JSON.stringify(currentConfig,null,2); }); basics.appendChild(ctl);} }); if(basics.childNodes.length){ const sec=document.createElement('div'); sec.appendChild(h3('Basics')); sec.appendChild(basics); container.appendChild(sec); }
+    // Groups
+    if(cfg.cta&&typeof cfg.cta==='object'){ const sec=document.createElement('div'); sec.appendChild(h3('Call To Action')); const grid=document.createElement('div'); grid.style.display='grid'; grid.style.gridTemplateColumns='repeat(auto-fit,minmax(160px,1fr))'; grid.style.gap='8px'; ['label','url'].forEach(sub=>{ const ctl=buildPrimitiveInput(`cta.${sub}`, sub, 'text', cfg.cta[sub],nv=>{ deepSet(currentConfig,`cta.${sub}`,nv); editor.value=JSON.stringify(currentConfig,null,2); }); grid.appendChild(ctl); }); sec.appendChild(grid); container.appendChild(sec); }
+    if(Array.isArray(cfg.whatsNew)){ const wrap=buildListPrimitive('whatsNew','What\'s New',cfg.whatsNew,arr=>{ deepSet(currentConfig,'whatsNew',arr); editor.value=JSON.stringify(currentConfig,null,2); }); const sec=document.createElement('div'); sec.appendChild(h3('What\'s New')); sec.appendChild(wrap); container.appendChild(sec); }
+    if(Array.isArray(cfg.risks)){ const wrap=buildListPrimitive('risks','Risks & Blockers',cfg.risks,arr=>{ deepSet(currentConfig,'risks',arr); editor.value=JSON.stringify(currentConfig,null,2); }); const sec=document.createElement('div'); sec.appendChild(h3('Risks & Blockers')); sec.appendChild(wrap); container.appendChild(sec); }
+    if(Array.isArray(cfg.workstreams)){ const wrap=buildListObjects('workstreams','Workstreams',cfg.workstreams,[{path:'label',label:'Label',type:'text'},{path:'percent',label:'Percent',type:'percent'}],arr=>{ deepSet(currentConfig,'workstreams',arr); editor.value=JSON.stringify(currentConfig,null,2); }); const sec=document.createElement('div'); sec.appendChild(h3('Workstreams')); sec.appendChild(wrap); container.appendChild(sec); }
+    if(Array.isArray(cfg.milestones)){ const wrap=buildListObjects('milestones','Milestones',cfg.milestones,[{path:'label',label:'Label',type:'text'},{path:'date',label:'Date',type:'text'}],arr=>{ deepSet(currentConfig,'milestones',arr); editor.value=JSON.stringify(currentConfig,null,2); }); const sec=document.createElement('div'); sec.appendChild(h3('Milestones')); sec.appendChild(wrap); container.appendChild(sec); }
+    if(Array.isArray(cfg.contributors)){ const wrap=buildListObjects('contributors','Contributors',cfg.contributors,[{path:'name',label:'Name',type:'text'},{path:'imageUrl',label:'Image',type:'image'}],arr=>{ deepSet(currentConfig,'contributors',arr); editor.value=JSON.stringify(currentConfig,null,2); }); const sec=document.createElement('div'); sec.appendChild(h3('Contributors')); sec.appendChild(wrap); container.appendChild(sec); }
+    if('footerText' in cfg){ const sec=document.createElement('div'); sec.appendChild(h3('Footer')); const ctl=buildPrimitiveInput('footerText','Footer Text','textarea',cfg.footerText,nv=>{ deepSet(currentConfig,'footerText',nv); editor.value=JSON.stringify(currentConfig,null,2); }); sec.appendChild(ctl); container.appendChild(sec); }
+  }
+
+  // Dashboard and project rendering
+  function renderDashboard(){ dashboardView.style.display=''; projectView.style.display='none'; tmplList.innerHTML=''; projList.innerHTML='';
+    // Templates registry (if loaded)
+    if(window.__templateRegistry && window.__templateRegistry.length){ window.__templateRegistry.forEach(t=>{ const card=document.createElement('div'); card.className='card'; const h=document.createElement('h3'); h.textContent=t.name; const p=document.createElement('p'); p.textContent=t.description||t.file; const actions=document.createElement('div'); actions.className='controls'; const btn=document.createElement('button'); btn.className='btn'; btn.textContent='Create Project'; btn.addEventListener('click',async()=>{ try{ const res=await fetch('templates/'+t.file); const html=await res.text(); createProjectFromHtml(html, t.name); }catch{ alert('Unable to fetch template over file://. Use Load HTML.'); } }); actions.appendChild(btn); card.appendChild(h); card.appendChild(p); card.appendChild(actions); tmplList.appendChild(card); }); } else { const empty=document.createElement('div'); empty.className='muted'; empty.textContent='Load HTML to import a template (or serve over HTTP for registry)'; tmplList.appendChild(empty); }
+    // Projects
+    const items=Object.values(store.projects).sort((a,b)=>(b.updatedAt||0)-(a.updatedAt||0)); items.forEach(p=>{ const item=document.createElement('div'); item.className='list-item'; const title=document.createElement('div'); title.className='title'; title.textContent=p.name||'Untitled'; const meta=document.createElement('div'); meta.className='meta'; meta.textContent=`${new Date(p.updatedAt||p.createdAt).toLocaleString()} • ${(p.versions||[]).length} versions`; const left=document.createElement('div'); left.appendChild(title); left.appendChild(meta); const actions=document.createElement('div'); actions.className='controls'; const open=document.createElement('button'); open.className='btn'; open.textContent='Open'; open.addEventListener('click',()=>openProject(p.id)); const del=document.createElement('button'); del.className='btn ghost'; del.textContent='Delete'; del.addEventListener('click',()=>{ if(confirm('Delete project?')){ delete store.projects[p.id]; saveStore(); renderDashboard(); } }); actions.appendChild(open); actions.appendChild(del); item.appendChild(left); item.appendChild(actions); projList.appendChild(item); });
+  }
+
+  function renderVersionStrip(){ versionStrip.innerHTML=''; const p=store.projects[currentProjectId]; if(!p) return; (p.versions||[]).sort((a,b)=>(a.createdAt||0)-(b.createdAt||0)).forEach(v=>{ const chip=document.createElement('button'); chip.className='chip'+(v.id===currentVersionId?' active':''); chip.type='button'; chip.textContent=v.name; chip.title=new Date(v.updatedAt||v.createdAt).toLocaleString(); chip.addEventListener('click',()=>openProject(currentProjectId,v.id)); versionStrip.appendChild(chip); }); }
+
+  // Project
+  function createProjectFromHtml(html, name){ const id=uid(); const now=Date.now(); const vid=uid(); const cfg=toCanonicalConfig(html); store.projects[id]={ id, name: name||'Custom Template', templateHtml: html, createdAt: now, updatedAt: now, versions:[{ id: vid, name: 'v1', config: cfg, isDraft:true, createdAt: now, updatedAt: now }] }; saveStore(); openProject(id,vid); }
+  function openProject(id, versionId){ const p=store.projects[id]; if(!p) return; currentProjectId=id; currentVersionId=versionId||(p.versions&&p.versions[0]&&p.versions[0].id); const v=p.versions.find(x=>x.id===currentVersionId) || p.versions[0]; currentVersionId=v.id; currentConfig=JSON.parse(JSON.stringify(v.config||{})); editor.value=JSON.stringify(currentConfig,null,2); dashboardView.style.display='none'; projectView.style.display=''; projTemplateName.textContent=p.name||'Template'; projNameInput.value=p.name||''; renderVersionStrip(); renderFormFromConfig(currentConfig); schedulePreview(); }
+
+  function addVersion(){ const p=store.projects[currentProjectId]; if(!p) return; const now=Date.now(); const vid=uid(); const baseName='v'+(p.versions.length+1); p.versions.push({ id:vid, name:baseName, config: JSON.parse(JSON.stringify(currentConfig)), isDraft:true, createdAt: now, updatedAt: now }); p.updatedAt=now; saveStore(); openProject(p.id, vid); }
+  function deleteCurrentVersion(){ const p=store.projects[currentProjectId]; if(!p) return; if(p.versions.length<=1){ alert('At least one version is required.'); return; } const ix=p.versions.findIndex(x=>x.id===currentVersionId); if(ix>=0){ p.versions.splice(ix,1); saveStore(); const next=p.versions[Math.max(0,ix-1)]; openProject(p.id,next.id); } }
+
+  // Registry loader (HTTP only)
+  async function loadTemplateRegistry(){ try{ const res=await fetch('templates/manifest.json',{cache:'no-store'}); if(!res.ok) throw new Error('fetch failed'); const list=await res.json(); window.__templateRegistry=list; }catch(e){ window.__templateRegistry=[]; }
+  }
+
+  // Wire up controls
+  function bindEvents(){
+    // Normalize any garbled text in back button
+    const backBtn=$('#back-dashboard'); if(backBtn) backBtn.textContent='Back to Dashboard';
+    $('#load-template').addEventListener('click',()=>$('#template-file').click());
+    $('#template-file').addEventListener('change',e=>{ const f=e.target.files&&e.target.files[0]; if(!f) return; const r=new FileReader(); r.onload=()=>{ createProjectFromHtml(String(r.result||''), f.name.replace(/\.[^.]+$/,'')); }; r.readAsText(f); e.target.value=''; });
+    $('#new-from-scratch').addEventListener('click',()=>{ const html='<!doctype html><meta charset="utf-8"><body style="font:14px Segoe UI,Arial;padding:24px">Paste or load a template HTML to start.</body>'; createProjectFromHtml(html,'Blank Template'); });
+    // Projects toolbar
+    $('#proj-export-all').addEventListener('click',()=>{ const blob=new Blob([JSON.stringify(store,null,2)],{type:'application/json'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='projects.json'; a.click(); URL.revokeObjectURL(a.href); });
+    $('#proj-import-all').addEventListener('click',()=>$('#proj-import-all-file').click());
+    $('#proj-import-all-file').addEventListener('change',e=>{ const f=e.target.files&&e.target.files[0]; if(!f) return; const r=new FileReader(); r.onload=()=>{ try{ const json=JSON.parse(String(r.result||'{}')); if(json&&json.projects){ store=json; saveStore(); renderDashboard(); } }catch(err){ alert('Invalid JSON: '+err.message); } }; r.readAsText(f); e.target.value=''; });
+
+    // Project view controls
+    $('#back-dashboard').addEventListener('click',()=>{ renderDashboard(); });
+    $('#proj-export').addEventListener('click',()=>{ const p=store.projects[currentProjectId]; if(!p) return; const blob=new Blob([JSON.stringify(p,null,2)],{type:'application/json'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=(p.name||'project')+'.json'; a.click(); URL.revokeObjectURL(a.href); });
+    $('#proj-import').addEventListener('click',()=>$('#proj-import-file').click());
+    $('#proj-import-file').addEventListener('change',e=>{ const f=e.target.files&&e.target.files[0]; if(!f) return; const r=new FileReader(); r.onload=()=>{ try{ const p=JSON.parse(String(r.result||'{}')); if(p&&p.id&&p.versions){ store.projects[p.id]=p; saveStore(); openProject(p.id,p.versions[0].id); } }catch(err){ alert('Invalid project JSON: '+err.message); } }; r.readAsText(f); e.target.value=''; });
+    $('#proj-delete').addEventListener('click',()=>{ const p=store.projects[currentProjectId]; if(!p) return; if(confirm('Delete this project?')){ delete store.projects[p.id]; saveStore(); renderDashboard(); } });
+    $('#proj-load-template').addEventListener('click',()=>$('#proj-template-file').click());
+    $('#proj-template-file').addEventListener('change',e=>{ const p=store.projects[currentProjectId]; if(!p) return; const f=e.target.files&&e.target.files[0]; if(!f) return; const r=new FileReader(); r.onload=()=>{ const html=String(r.result||''); const cfg=toCanonicalConfig(html); const now=Date.now(); const vid=uid(); p.templateHtml=html; p.versions.push({ id:vid, name:'v'+(p.versions.length+1), config: cfg, isDraft:true, createdAt: now, updatedAt: now }); p.updatedAt=now; saveStore(); openProject(p.id,vid); }; r.readAsText(f); e.target.value=''; });
+    $('#add-version').addEventListener('click',addVersion);
+
+    // Editor mode toggle
+    $('#mode-form').addEventListener('click',()=>{ formPane.style.display=''; jsonPane.style.display='none'; });
+    $('#mode-json').addEventListener('click',()=>{ formPane.style.display='none'; jsonPane.style.display=''; });
+    $('#sync-from-json').addEventListener('click',()=>{ try{ const obj=JSON.parse(editor.value||'{}'); currentConfig=obj; persistCurrentConfig(); renderFormFromConfig(currentConfig); schedulePreview(); statusBar.textContent='Synced from JSON'; setTimeout(()=>statusBar.textContent='',1200); }catch(e){ alert('Invalid JSON: '+e.message); } });
+    // Copy/Download HTML
+    $('#copy-html').addEventListener('click',async()=>{ const html=buildCurrentHtml(); try{ await navigator.clipboard.writeText(html); statusBar.textContent='Copied HTML'; setTimeout(()=>statusBar.textContent='',1200);}catch{ const ta=document.createElement('textarea'); ta.value=html; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); statusBar.textContent='Copied HTML'; setTimeout(()=>statusBar.textContent='',1200);} });
+    $('#download-html').addEventListener('click',()=>{ const p=store.projects[currentProjectId]||{}; const html=buildCurrentHtml(); const blob=new Blob([html],{type:'text/html;charset=utf-8'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=((p.name||'email')+'.html').replace(/\s+/g,'-').toLowerCase(); a.click(); URL.revokeObjectURL(a.href); });
+
+    // Project name
+    projNameInput.addEventListener('input',()=>{ const p=store.projects[currentProjectId]; if(!p) return; p.name=projNameInput.value||'Untitled'; projTemplateName.textContent=p.name; p.updatedAt=Date.now(); saveStore(); });
+  }
+
+  // Boot
+  loadStore();
+  bindEvents();
+  loadTemplateRegistry().then(renderDashboard).catch(renderDashboard);
 })();
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

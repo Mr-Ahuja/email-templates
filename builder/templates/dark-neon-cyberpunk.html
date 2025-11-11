@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <title>{{PROJECT_NAME}} - Cyber Update</title>
+</head>
+<body style="margin:0; padding:0; background:#0A0B0F; color:#E6FDF9;">
+  <table role="presentation" width="100%" style="background:#0A0B0F;"><tr><td align="center" style="padding:24px;">
+    <table role="presentation" width="680" style="width:680px; max-width:680px; background:#101217; border:1px solid #1E2331;">
+      <tr><td style="padding:18px 20px; border-bottom:1px solid #1E2331; background:linear-gradient(90deg,#0F172A,#0A0B0F)">
+        <table role="presentation" width="100%"><tr>
+          <td width="56"><img src="{{PROJECT_ICON_URL}}" width="52" height="52" alt="{{PROJECT_NAME}} icon" style="display:block; border-radius:10px; background:#0B1020; border:1px solid #283046"></td>
+          <td style="padding-left:12px">
+            <div style="font:12px Segoe UI,Arial; color:#7BD7C9; letter-spacing:.4px">Project Signal</div>
+            <div style="font:700 28px/30px Segoe UI,Arial; color:#E6FDF9">{{PROJECT_NAME}}</div>
+          </td>
+          <td align="right" style="font:12px Segoe UI,Arial; color:#9FB7B2">{{UPDATE_DATE}}</td>
+        </tr></table>
+      </td></tr>
+      <tr><td style="padding:16px 20px 0"><div style="font:14px/20px Segoe UI,Arial; color:#CDE8E3">{{UPDATE_SUMMARY}}</div></td></tr>
+      <tr><td style="padding:14px 20px 0">
+        <div style="font:12px Segoe UI,Arial; color:#8CB9B1">Overall Progress: <span style="color:#E6FDF9; font-weight:700">{{PROGRESS_PERCENT}}%</span></div>
+        <div style="height:12px; background:#161A23; border:1px solid #223146; border-radius:9999px; overflow:hidden; margin-top:8px"><div style="width:{{PROGRESS_PERCENT}}%; height:12px; background:linear-gradient(90deg,#00FFD1,#2D7FF9)"></div></div>
+      </td></tr>
+      <tr><td style="padding:12px 20px 0">
+        <table role="presentation" width="100%" style="background:#0F1320; border:1px solid #1F2A3D"><tr><td style="padding:14px">
+          <div style="font:600 14px/20px Segoe UI,Arial; color:#E6FDF9; margin-bottom:6px">What's New</div>
+          <ul style="padding-left:18px; margin:0; font:13px/20px Segoe UI,Arial; color:#BFEDEA">
+            <li>{{WHATS_NEW_ITEM_1}}</li>
+            <li>{{WHATS_NEW_ITEM_2}}</li>
+            <li>{{WHATS_NEW_ITEM_3}}</li>
+          </ul>
+        </td></tr></table>
+      </td></tr>
+      <tr><td style="padding:10px 20px 0">
+        <table role="presentation" width="100%" style="background:#0E111A; border:1px solid #1E2331"><tr><td style="padding:14px">
+          <div style="font:600 14px/20px Segoe UI,Arial; color:#E6FDF9; margin-bottom:6px">Workstreams</div>
+          <div style="margin:0 0 10px 0">
+            <div style="font:13px Segoe UI,Arial; color:#CDE8E3">{{TRACK_1_LABEL}}</div>
+            <div style="height:8px; background:#151A24; border:1px solid #263149; overflow:hidden"><div style="width:{{TRACK_1_PERCENT}}%; height:8px; background:#00FFD1"></div></div>
+          </div>
+          <div style="margin:0 0 10px 0">
+            <div style="font:13px Segoe UI,Arial; color:#CDE8E3">{{TRACK_2_LABEL}}</div>
+            <div style="height:8px; background:#151A24; border:1px solid #263149; overflow:hidden"><div style="width:{{TRACK_2_PERCENT}}%; height:8px; background:#2D7FF9"></div></div>
+          </div>
+          <div style="margin:0">
+            <div style="font:13px Segoe UI,Arial; color:#CDE8E3">{{TRACK_3_LABEL}}</div>
+            <div style="height:8px; background:#151A24; border:1px solid #263149; overflow:hidden"><div style="width:{{TRACK_3_PERCENT}}%; height:8px; background:#FF2D9B"></div></div>
+          </div>
+        </td></tr></table>
+      </td></tr>
+      <tr><td style="padding:10px 20px 0">
+        <table role="presentation" width="100%" style="background:#0F1320; border:1px solid #1F2A3D"><tr><td style="padding:14px">
+          <div style="font:600 14px/20px Segoe UI,Arial; color:#E6FDF9; margin-bottom:6px">Next Milestones</div>
+          <ul style="padding-left:18px; margin:0; font:13px/20px Segoe UI,Arial; color:#BFEDEA">
+            <li>{{MILESTONE_1}} - {{MILESTONE_1_DATE}}</li>
+            <li>{{MILESTONE_2}} - {{MILESTONE_2_DATE}}</li>
+            <li>{{MILESTONE_3}} - {{MILESTONE_3_DATE}}</li>
+          </ul>
+        </td></tr></table>
+      </td></tr>
+      <tr><td style="padding:16px 20px">
+        <a href="{{CTA_URL}}" style="background:linear-gradient(90deg,#00FFD1,#2D7FF9); color:#051014; text-decoration:none; font:700 14px Segoe UI,Arial; line-height:44px; display:inline-block; min-width:220px; text-align:center; border:1px solid #223146;">{{CTA_LABEL}}</a>
+      </td></tr>
+      <tr><td style="padding:0 20px 10px"><div style="height:1px; background:#1E2331"></div></td></tr>
+      <tr><td style="padding:12px 20px 6px">
+        <div style="font:600 14px/20px Segoe UI,Arial; color:#E6FDF9; margin-bottom:6px">Contributors</div>
+        <table role="presentation" width="100%"><tr>
+          <td style="padding:6px 0"><table role="presentation"><tr>
+            <td width="34"><img src="{{CONTRIB_1_IMAGE_URL}}" width="30" height="30" alt="Contributor 1" style="display:block; border-radius:6px; background:#0B1020; border:1px solid #1E2331"></td>
+            <td style="padding-left:8px; font:13px Segoe UI,Arial; color:#CDE8E3">{{CONTRIB_1_NAME}}</td>
+          </tr></table></td>
+        </tr></table>
+      </td></tr>
+      <tr><td style="padding:8px 20px 20px"><div style="font:12px/18px Segoe UI,Arial; color:#9FB7B2">{{FOOTER_TEXT}}</div></td></tr>
+    </table>
+  </td></tr></table>
+</body>
+</html>
+

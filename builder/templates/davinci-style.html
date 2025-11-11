@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{PROJECT_NAME}} - Project Dispatch</title>
+  <style>/* for some clients */
+    @media (prefers-color-scheme: light) { }
+  </style>
+</head>
+<body style="margin:0; padding:0; background:#F4EDDC; color:#1E1B16;">
+  <table role="presentation" width="100%" style="background:#F4EDDC;"><tr><td align="center" style="padding:24px;">
+    <table role="presentation" width="640" style="width:640px; max-width:640px; background:#FBF6E9; border:1px solid #D6C9A3;">
+      <tr><td style="padding:20px; border-bottom:1px solid #D6C9A3;">
+        <table width="100%" role="presentation"><tr>
+          <td width="56" valign="top"><img src="{{PROJECT_ICON_URL}}" width="52" height="52" alt="{{PROJECT_NAME}} icon" style="display:block; border:1px solid #BFAF80"></td>
+          <td style="padding-left:12px">
+            <div style="font:12px Georgia, 'Times New Roman', serif; color:#6A5D3B; letter-spacing:.3px">Project Dispatch</div>
+            <div style="font:700 28px/30px Georgia, 'Times New Roman', serif; color:#1E1B16">{{PROJECT_NAME}}</div>
+          </td>
+          <td align="right" style="font:12px Georgia, 'Times New Roman', serif; color:#6A5D3B">{{UPDATE_DATE}}</td>
+        </tr></table>
+      </td></tr>
+      <tr><td style="padding:16px 20px 0"><div style="font:14px/20px Georgia, 'Times New Roman', serif; color:#3A3426">{{UPDATE_SUMMARY}}</div></td></tr>
+      <tr><td style="padding:16px 20px 0">
+        <div style="font:12px Georgia, 'Times New Roman', serif; color:#6A5D3B">Overall Progress: <span style="color:#1E1B16; font-weight:700">{{PROGRESS_PERCENT}}%</span></div>
+        <div style="height:10px; background:#E6DDC3; border:1px solid #D6C9A3; overflow:hidden; margin-top:6px"><div style="width:{{PROGRESS_PERCENT}}%; height:10px; background:#9E7F49"></div></div>
+      </td></tr>
+      <tr><td style="padding:16px 20px 0">
+        <div style="font:600 14px/20px Georgia, 'Times New Roman', serif; color:#1E1B16; margin-bottom:6px">What's New</div>
+        <ul style="padding-left:18px; margin:0; font:13px/20px Georgia, 'Times New Roman', serif; color:#2A261C">
+          <li>{{WHATS_NEW_ITEM_1}}</li>
+          <li>{{WHATS_NEW_ITEM_2}}</li>
+          <li>{{WHATS_NEW_ITEM_3}}</li>
+        </ul>
+      </td></tr>
+      <tr><td style="padding:12px 20px 0">
+        <div style="font:600 14px/20px Georgia, 'Times New Roman', serif; color:#1E1B16; margin-bottom:6px">Workstream Progress</div>
+        <div style="margin:0 0 10px 0">
+          <div style="font:13px Georgia, 'Times New Roman', serif; color:#2A261C">{{TRACK_1_LABEL}}</div>
+          <div style="height:8px; background:#E6DDC3; border:1px solid #D6C9A3; overflow:hidden"><div style="width:{{TRACK_1_PERCENT}}%; height:8px; background:#9E7F49"></div></div>
+        </div>
+        <div style="margin:0 0 10px 0">
+          <div style="font:13px Georgia, 'Times New Roman', serif; color:#2A261C">{{TRACK_2_LABEL}}</div>
+          <div style="height:8px; background:#E6DDC3; border:1px solid #D6C9A3; overflow:hidden"><div style="width:{{TRACK_2_PERCENT}}%; height:8px; background:#9E7F49"></div></div>
+        </div>
+        <div style="margin:0">
+          <div style="font:13px Georgia, 'Times New Roman', serif; color:#2A261C">{{TRACK_3_LABEL}}</div>
+          <div style="height:8px; background:#E6DDC3; border:1px solid #D6C9A3; overflow:hidden"><div style="width:{{TRACK_3_PERCENT}}%; height:8px; background:#9E7F49"></div></div>
+        </div>
+      </td></tr>
+      <tr><td style="padding:12px 20px 0">
+        <div style="font:600 14px/20px Georgia, 'Times New Roman', serif; color:#1E1B16; margin-bottom:6px">Next Milestones</div>
+        <ul style="padding-left:18px; margin:0; font:13px/20px Georgia, 'Times New Roman', serif; color:#2A261C">
+          <li>{{MILESTONE_1}} - {{MILESTONE_1_DATE}}</li>
+          <li>{{MILESTONE_2}} - {{MILESTONE_2_DATE}}</li>
+          <li>{{MILESTONE_3}} - {{MILESTONE_3_DATE}}</li>
+        </ul>
+      </td></tr>
+      <tr><td style="padding:16px 20px">
+        <a href="{{CTA_URL}}" style="background:#9E7F49; color:#FBF6E9; text-decoration:none; font:700 14px Georgia, 'Times New Roman', serif; line-height:42px; display:inline-block; min-width:220px; text-align:center;">{{CTA_LABEL}}</a>
+      </td></tr>
+      <tr><td style="padding:0 20px 16px"><div style="height:1px; background:#D6C9A3"></div></td></tr>
+      <tr><td style="padding:12px 20px 6px">
+        <div style="font:600 14px/20px Georgia, 'Times New Roman', serif; color:#1E1B16; margin-bottom:6px">Contributors</div>
+        <table role="presentation" width="100%"><tr>
+          <td style="padding:6px 0"><table role="presentation"><tr>
+            <td width="36"><img src="{{CONTRIB_1_IMAGE_URL}}" width="32" height="32" alt="Contributor 1" style="display:block; border:1px solid #D6C9A3"></td>
+            <td style="padding-left:8px; font:13px Georgia, 'Times New Roman', serif; color:#2A261C">{{CONTRIB_1_NAME}}</td>
+          </tr></table></td>
+        </tr></table>
+      </td></tr>
+      <tr><td style="padding:8px 20px 20px"><div style="font:12px/18px Georgia, 'Times New Roman', serif; color:#6A5D3B">{{FOOTER_TEXT}}</div></td></tr>
+    </table>
+  </td></tr></table>
+</body>
+</html>
+

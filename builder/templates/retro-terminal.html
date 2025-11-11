@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <title>{{PROJECT_NAME}} - Terminal Report</title>
+</head>
+<body style="margin:0; padding:0; background:#0B0F0B; color:#00FF80;">
+  <table role="presentation" width="100%" style="background:#0B0F0B;"><tr><td align="center" style="padding:24px;">
+    <table role="presentation" width="640" style="width:640px; max-width:640px; background:#0D140D; border:1px solid #003F20;">
+      <tr><td style="padding:16px 18px; border-bottom:1px solid #003F20">
+        <table role="presentation" width="100%"><tr>
+          <td width="50"><img src="{{PROJECT_ICON_URL}}" width="46" height="46" alt="{{PROJECT_NAME}} icon" style="display:block; border:1px solid #003F20; background:#000"></td>
+          <td style="padding-left:10px">
+            <div style="font:12px Consolas, 'Courier New', monospace; color:#00FF80">project.update</div>
+            <div style="font:700 24px/26px Consolas, 'Courier New', monospace; color:#00FF80">{{PROJECT_NAME}}</div>
+          </td>
+          <td align="right" style="font:12px Consolas, 'Courier New', monospace; color:#00FF80">{{UPDATE_DATE}}</td>
+        </tr></table>
+      </td></tr>
+      <tr><td style="padding:12px 18px 0"><div style="font:13px/20px Consolas, 'Courier New', monospace; color:#80FFBF">{{UPDATE_SUMMARY}}</div></td></tr>
+      <tr><td style="padding:10px 18px 0">
+        <div style="font:12px Consolas, 'Courier New', monospace; color:#00FF80">progress: <span style="font-weight:700">{{PROGRESS_PERCENT}}%</span></div>
+        <div style="height:8px; background:#001F10; border:1px solid #003F20; overflow:hidden; margin-top:6px"><div style="width:{{PROGRESS_PERCENT}}%; height:8px; background:#00FF80"></div></div>
+      </td></tr>
+      <tr><td style="padding:10px 18px 0">
+        <div style="font:700 14px/20px Consolas, 'Courier New', monospace; color:#00FF80; margin-bottom:6px">What's New</div>
+        <ul style="padding-left:18px; margin:0; font:13px/20px Consolas, 'Courier New', monospace; color:#80FFBF">
+          <li>{{WHATS_NEW_ITEM_1}}</li>
+          <li>{{WHATS_NEW_ITEM_2}}</li>
+          <li>{{WHATS_NEW_ITEM_3}}</li>
+        </ul>
+      </td></tr>
+      <tr><td style="padding:8px 18px 0">
+        <div style="font:700 14px/20px Consolas, 'Courier New', monospace; color:#00FF80; margin-bottom:6px">Workstreams</div>
+        <div style="margin:0 0 8px 0">
+          <div style="font:13px Consolas, 'Courier New', monospace; color:#80FFBF">{{TRACK_1_LABEL}}</div>
+          <div style="height:6px; background:#001F10; border:1px solid #003F20; overflow:hidden"><div style="width:{{TRACK_1_PERCENT}}%; height:6px; background:#00FF80"></div></div>
+        </div>
+        <div style="margin:0 0 8px 0">
+          <div style="font:13px Consolas, 'Courier New', monospace; color:#80FFBF">{{TRACK_2_LABEL}}</div>
+          <div style="height:6px; background:#001F10; border:1px solid #003F20; overflow:hidden"><div style="width:{{TRACK_2_PERCENT}}%; height:6px; background:#00FF80"></div></div>
+        </div>
+        <div style="margin:0">
+          <div style="font:13px Consolas, 'Courier New', monospace; color:#80FFBF">{{TRACK_3_LABEL}}</div>
+          <div style="height:6px; background:#001F10; border:1px solid #003F20; overflow:hidden"><div style="width:{{TRACK_3_PERCENT}}%; height:6px; background:#00FF80"></div></div>
+        </div>
+      </td></tr>
+      <tr><td style="padding:8px 18px 0">
+        <div style="font:700 14px/20px Consolas, 'Courier New', monospace; color:#00FF80; margin-bottom:6px">Milestones</div>
+        <ul style="padding-left:18px; margin:0; font:13px/20px Consolas, 'Courier New', monospace; color:#80FFBF">
+          <li>{{MILESTONE_1}} - {{MILESTONE_1_DATE}}</li>
+          <li>{{MILESTONE_2}} - {{MILESTONE_2_DATE}}</li>
+          <li>{{MILESTONE_3}} - {{MILESTONE_3_DATE}}</li>
+        </ul>
+      </td></tr>
+      <tr><td style="padding:12px 18px">
+        <a href="{{CTA_URL}}" style="background:#00FF80; color:#0B0F0B; text-decoration:none; font:700 13px Consolas, 'Courier New', monospace; line-height:38px; display:inline-block; min-width:200px; text-align:center;">{{CTA_LABEL}}</a>
+      </td></tr>
+      <tr><td style="padding:0 18px 8px"><div style="height:1px; background:#003F20"></div></td></tr>
+      <tr><td style="padding:10px 18px 6px">
+        <div style="font:700 14px/20px Consolas, 'Courier New', monospace; color:#00FF80; margin-bottom:6px">Contributors</div>
+        <table role="presentation" width="100%"><tr>
+          <td style="padding:6px 0"><table role="presentation"><tr>
+            <td width="30"><img src="{{CONTRIB_1_IMAGE_URL}}" width="26" height="26" alt="Contributor 1" style="display:block; border:1px solid #003F20; background:#000"></td>
+            <td style="padding-left:8px; font:13px Consolas, 'Courier New', monospace; color:#80FFBF">{{CONTRIB_1_NAME}}</td>
+          </tr></table></td>
+        </tr></table>
+      </td></tr>
+      <tr><td style="padding:8px 18px 16px"><div style="font:12px/18px Consolas, 'Courier New', monospace; color:#80FFBF">{{FOOTER_TEXT}}</div></td></tr>
+    </table>
+  </td></tr></table>
+</body>
+</html>
+

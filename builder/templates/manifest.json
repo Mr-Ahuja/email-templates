@@ -1,7 +1,12 @@
 [
-  {"id":"material-dark","name":"Material Dark — Project Update","file":"material-dark.html","description":"Dark layout with progress, sections, and contributors."},
-  {"id":"mythic-light-hermes","name":"Mythic Light — Hermes Update","file":"mythic-light-hermes.html","description":"Light theme with Hermes accents and route track."},
-  {"id":"hermes-alt","name":"Hermes Alt — Hero + Metrics","file":"hermes-alt.html","description":"Light variant with hero banner, metric cards, split lists."},
-  {"id":"brutalist-neon","name":"Brutalist Neon — Status Brief","file":"brutalist-neon.html","description":"Neon brutalist blocks and ASCII bars."}
+  {"id":"material-dark","name":"Material Dark - Project Update","file":"material-dark.html","description":"Dark layout with progress, sections, milestones, and contributors."},
+  {"id":"mythic-light-hermes","name":"Mythic Light - Hermes Update","file":"mythic-light-hermes.html","description":"Light theme with Hermes accents and route track."},
+  {"id":"hermes-alt","name":"Hermes Alt - Hero + Metrics","file":"hermes-alt.html","description":"Light variant with hero banner, metric cards, split lists."},
+  {"id":"brutalist-neon","name":"Brutalist Neon - Status Brief","file":"brutalist-neon.html","description":"Neon brutalist blocks and ASCII bars."},
+  {"id":"davinci-style","name":"DaVinci Style - Parchment","file":"davinci-style.html","description":"Elegant serif on parchment with subtle rules."},
+  {"id":"dark-neon-cyberpunk","name":"Dark Neon - Cyberpunk","file":"dark-neon-cyberpunk.html","description":"Dark base, neon accents, strong bars."},
+  {"id":"minimalist-monochrome","name":"Minimalist Monochrome","file":"minimalist-monochrome.html","description":"Strict black/white, clean lines, simple borders."},
+  {"id":"corporate-blue","name":"Corporate Blue","file":"corporate-blue.html","description":"Conservative corporate look with soft blues."},
+  {"id":"newspaper-print","name":"Newspaper Print","file":"newspaper-print.html","description":"Off-white, bold headings, list-heavy style."},
+  {"id":"retro-terminal","name":"Retro Terminal","file":"retro-terminal.html","description":"Monospace, green-on-black, retro terminal feel."}
 ]
-
