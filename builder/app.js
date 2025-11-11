@@ -167,7 +167,15 @@
   function deleteCurrentVersion(){ const p=store.projects[currentProjectId]; if(!p) return; if(p.versions.length<=1){ alert('At least one version is required.'); return; } const ix=p.versions.findIndex(x=>x.id===currentVersionId); if(ix>=0){ p.versions.splice(ix,1); saveStore(); const next=p.versions[Math.max(0,ix-1)]; openProject(p.id,next.id); } }
 
   // Registry loader (HTTP only)
-  async function loadTemplateRegistry(){ try{ const res=await fetch('templates/manifest.json',{cache:'no-store'}); if(!res.ok) throw new Error('fetch failed'); const list=await res.json(); window.__templateRegistry=list; }catch(e){ window.__templateRegistry=[]; }
+  async function loadTemplateRegistry(){
+    try{
+      if (location.protocol === 'file:') { window.__templateRegistry=[]; return; }
+      const res=await fetch('templates/manifest.json',{cache:'no-store'});
+      if(!res.ok) throw new Error('fetch failed');
+      const list=await res.json();
+      window.__templateRegistry=list;
+    }catch(e){ window.__templateRegistry=[]; }
+  }
   }
 
   // Wire up controls
