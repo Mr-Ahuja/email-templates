@@ -1171,33 +1171,34 @@
   function buildPrimitiveInput(path, label, type, value, onChange){
     const wrap = document.createElement('div');
     wrap.style.marginBottom = '10px';
-    const lab = document.createElement('div'); lab.className='muted'; lab.textContent = label; wrap.appendChild(lab);
+    const inputId = 'f_' + path.replace(/[^a-z0-9]+/gi,'_').replace(/^_+|_+$/g,'').toLowerCase() + '_' + Math.random().toString(36).slice(2,6);
+    const lab = document.createElement('label'); lab.className='muted'; lab.textContent = label; lab.setAttribute('for', inputId); wrap.appendChild(lab);
     if (type === 'textarea'){
-      const ta = document.createElement('textarea'); ta.className='input'; ta.style.minHeight='80px'; ta.value = value||''; ta.addEventListener('input', ()=> onChange(ta.value)); wrap.appendChild(ta);
+      const ta = document.createElement('textarea'); ta.id=inputId; ta.className='input'; ta.style.minHeight='80px'; ta.value = value||''; ta.addEventListener('input', ()=> onChange(ta.value)); wrap.appendChild(ta);
     } else if (type === 'checkbox'){
-      const cb = document.createElement('input'); cb.type='checkbox'; cb.checked = !!value; cb.addEventListener('change', ()=> onChange(cb.checked)); wrap.appendChild(cb);
+      const cb = document.createElement('input'); cb.id=inputId; cb.type='checkbox'; cb.checked = !!value; cb.addEventListener('change', ()=> onChange(cb.checked)); wrap.appendChild(cb);
     } else if (type === 'percent'){
       const row = document.createElement('div'); row.style.display='flex'; row.style.gap='8px';
-      const num = document.createElement('input'); num.type='number'; num.className='input'; num.style.maxWidth='120px'; num.min='0'; num.max='100'; num.step='1'; num.value = (value??0);
+      const num = document.createElement('input'); num.id=inputId; num.type='number'; num.className='input'; num.style.maxWidth='120px'; num.min='0'; num.max='100'; num.step='1'; num.value = (value??0);
       num.addEventListener('input', ()=> onChange(clamp(num.value)) );
-      const rng = document.createElement('input'); rng.type='range'; rng.min='0'; rng.max='100'; rng.step='1'; rng.value = (value??0);
+      const rng = document.createElement('input'); rng.type='range'; rng.min='0'; rng.max='100'; rng.step='1'; rng.value = (value??0); rng.setAttribute('aria-labelledby', inputId);
       rng.addEventListener('input', ()=> { num.value = rng.value; onChange(clamp(rng.value)); });
       row.appendChild(num); row.appendChild(rng); wrap.appendChild(row);
     } else if (type === 'color'){
       const row = document.createElement('div'); row.style.display='flex'; row.style.gap='8px';
-      const color = document.createElement('input'); color.type='color'; color.value = /^#/.test(value||'') ? value : '#000000';
-      const txt = document.createElement('input'); txt.type='text'; txt.className='input'; txt.value = value||'';
+      const color = document.createElement('input'); color.id=inputId+'_c'; color.type='color'; color.value = /^#/.test(value||'') ? value : '#000000';
+      const txt = document.createElement('input'); txt.id=inputId; txt.type='text'; txt.className='input'; txt.value = value||'';
       color.addEventListener('input', ()=> { txt.value = color.value; onChange(txt.value); });
       txt.addEventListener('input', ()=> onChange(txt.value));
       row.appendChild(color); row.appendChild(txt); wrap.appendChild(row);
     } else if (type === 'image'){
-      const modeRow = document.createElement('div'); modeRow.style.display='flex'; modeRow.style.gap='8px'; modeRow.style.alignItems='center';
-      const urlBtn = document.createElement('button'); urlBtn.className='btn ghost'; urlBtn.textContent='Use URL';
-      const svgBtn = document.createElement('button'); svgBtn.className='btn ghost'; svgBtn.textContent='SVG from name';
-      const urlInput = document.createElement('input'); urlInput.type='text'; urlInput.className='input'; urlInput.placeholder='https://...'; urlInput.value = value||''; urlInput.style.marginTop='6px';
+      const modeRow = document.createElement('div'); modeRow.style.display='flex'; modeRow.style.gap='8px'; modeRow.style.alignItems='center'; modeRow.setAttribute('role','group'); modeRow.setAttribute('aria-label','Image mode');
+      const urlBtn = document.createElement('button'); urlBtn.className='btn ghost'; urlBtn.textContent='Use URL'; urlBtn.setAttribute('aria-pressed','true');
+      const svgBtn = document.createElement('button'); svgBtn.className='btn ghost'; svgBtn.textContent='SVG from name'; svgBtn.setAttribute('aria-pressed','false');
+      const urlInput = document.createElement('input'); urlInput.id=inputId; urlInput.type='text'; urlInput.className='input'; urlInput.placeholder='https://...'; urlInput.value = value||''; urlInput.style.marginTop='6px';
       const prev = document.createElement('img'); prev.alt='preview'; prev.style.width='40px'; prev.style.height='40px'; prev.style.borderRadius='50%'; prev.style.border='1px solid #2a2a2a'; prev.style.marginLeft='8px';
-      function setUrlMode(){ urlBtn.className='btn'; svgBtn.className='btn ghost'; urlInput.style.display=''; prev.style.display=''; prev.src = urlInput.value; }
-      function setSvgMode(){ urlBtn.className='btn ghost'; svgBtn.className='btn'; urlInput.style.display='none'; prev.style.display=''; const displayName = path.toLowerCase().includes('projecticonurl') ? deepGet(currentConfig,'projectName') : guessNameForImage(path); prev.src = svgAvatar(displayName||''); onChange(prev.src); }
+      function setUrlMode(){ urlBtn.className='btn'; svgBtn.className='btn ghost'; urlBtn.setAttribute('aria-pressed','true'); svgBtn.setAttribute('aria-pressed','false'); urlInput.style.display=''; prev.style.display=''; prev.src = urlInput.value; }
+      function setSvgMode(){ urlBtn.className='btn ghost'; svgBtn.className='btn'; urlBtn.setAttribute('aria-pressed','false'); svgBtn.setAttribute('aria-pressed','true'); urlInput.style.display='none'; prev.style.display=''; const displayName = path.toLowerCase().includes('projecticonurl') ? deepGet(currentConfig,'projectName') : guessNameForImage(path); prev.src = svgAvatar(displayName||''); onChange(prev.src); }
       function guessNameForImage(path){
         // try sibling 'name' for contributors, else projectName
         if (path.includes('contributors')) return ' ';
@@ -1211,7 +1212,7 @@
       // default to URL mode
       setUrlMode();
     } else {
-      const inp = document.createElement('input'); inp.type = (type==='number'?'number':'text'); inp.className='input'; inp.value = (value??''); inp.addEventListener('input', ()=> onChange(inp.value) ); wrap.appendChild(inp);
+      const inp = document.createElement('input'); inp.id=inputId; inp.type = (type==='number'?'number':'text'); inp.className='input'; inp.value = (value??''); inp.addEventListener('input', ()=> onChange(inp.value) ); wrap.appendChild(inp);
     }
     return wrap;
   }
@@ -1379,12 +1380,14 @@
   function renderTemplates() {
     listEl.innerHTML = '';
     TEMPLATES.forEach(t => {
-      const div = document.createElement('div');
-      div.className = 'card';
-      div.dataset.id = t.id;
-      div.innerHTML = `<h3>${t.name}</h3><p>${t.description}</p>`;
-      div.addEventListener('click', () => selectTemplate(t));
-      listEl.appendChild(div);
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'card';
+      btn.dataset.id = t.id;
+      btn.setAttribute('aria-pressed','false');
+      btn.innerHTML = `<h3>${t.name}</h3><p>${t.description}</p>`;
+      btn.addEventListener('click', () => { selectTemplate(t); for (const c of $$('.card')) c.setAttribute('aria-pressed','false'); btn.setAttribute('aria-pressed','true'); });
+      listEl.appendChild(btn);
     });
     // Auto-select first
     if (TEMPLATES[0]) selectTemplate(TEMPLATES[0]);

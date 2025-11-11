@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Email Builder — Project Updates</title>
   <style>
+    .skip-link { position:absolute; left:-9999px; top:auto; width:1px; height:1px; overflow:hidden; }
+    .skip-link:focus { position: static; width: auto; height: auto; padding: 6px 10px; background: #232323; border:1px solid #2a2a2a; border-radius:8px; color:#e6e6e6; }
     :root { --bg:#0b0c0e; --panel:#141414; --text:#e6e6e6; --muted:#a0a6ad; --accent:#00bcd4; --border:#242424; }
     * { box-sizing: border-box; }
     body { margin:0; font-family: Segoe UI, Roboto, Arial, sans-serif; background:var(--bg); color:var(--text); }
@@ -43,47 +45,54 @@
   </style>
 </head>
 <body>
+  <a href="#composer-main" class="skip-link">Skip to main content</a>
   <header>
-    <h1>Email Builder — Project Updates</h1>
+    <h1 id="app-title">Email Builder — Project Updates</h1>
+    <div id="status-bar" role="status" aria-live="polite" class="muted"></div>
   </header>
   <main>
-    <section id="step-1" class="panel">
-      <div class="tabs">
-        <div class="tab active">1. Choose Template</div>
-        <div class="tab">2. Configure</div>
-        <div class="tab">3. Preview & Send</div>
+    <section id="step-1" class="panel" role="region" aria-labelledby="choose-template-heading">
+      <div class="tabs" role="tablist" aria-label="Steps">
+        <div class="tab active" role="tab" aria-selected="true" tabindex="0">1. Choose Template</div>
+        <div class="tab" role="tab" aria-selected="false" tabindex="-1">2. Configure</div>
+        <div class="tab" role="tab" aria-selected="false" tabindex="-1">3. Preview & Send</div>
       </div>
-      <p class="muted">Pick a template to start. You can add more later.</p>
-      <div id="template-list" class="templates"></div>
+      <h2 id="choose-template-heading" class="muted" style="font-size:14px;">Pick a template to start. You can add more later.</h2>
+      <nav aria-label="Templates">
+        <div id="template-list" class="templates"></div>
+      </nav>
       <div class="controls">
         <button id="to-step-2" class="btn" disabled>Next</button>
       </div>
     </section>
 
-    <section id="step-2" class="panel" style="display:none;">
-      <div class="tabs">
-        <div class="tab">1. Choose Template</div>
-        <div class="tab active">2. Configure</div>
-        <div class="tab">3. Preview & Send</div>
+    <section id="step-2" class="panel" style="display:none;" role="region" aria-labelledby="configure-heading">
+      <div class="tabs" role="tablist" aria-label="Steps">
+        <div class="tab" role="tab" aria-selected="false" tabindex="-1">1. Choose Template</div>
+        <div class="tab active" role="tab" aria-selected="true" tabindex="0">2. Configure</div>
+        <div class="tab" role="tab" aria-selected="false" tabindex="-1">3. Preview & Send</div>
       </div>
+      <h2 id="configure-heading" class="muted" style="font-size:14px;">Configure your email details and content.</h2>
       <!-- Project manager -->
       <div class="row" style="align-items:center; margin-bottom:8px;">
         <div class="col" style="flex:2;">
-          <label class="muted">Project Name</label>
-          <input type="text" id="project-title" class="input" placeholder="My Weekly Update">
+          <label class="muted" for="project-title">Project Name</label>
+          <input type="text" id="project-title" class="input" placeholder="My Weekly Update" aria-describedby="project-title-help">
+          <div id="project-title-help" class="help muted">Used for project identification and default subject.</div>
         </div>
         <div class="col" style="flex:3;">
           <div class="controls" style="justify-content:flex-start; gap:6px;">
-            <button id="proj-new" class="btn ghost">New</button>
-            <button id="proj-save" class="btn">Save</button>
-            <button id="proj-save-as" class="btn secondary">Save As</button>
-            <select id="proj-select" class="input" style="max-width:260px;">
+            <button id="proj-new" class="btn ghost" aria-label="Create a new project">New</button>
+            <button id="proj-save" class="btn" aria-label="Save project">Save</button>
+            <button id="proj-save-as" class="btn secondary" aria-label="Save project as new">Save As</button>
+            <label class="muted" for="proj-select" style="position:absolute; left:-9999px;">Open project</label>
+            <select id="proj-select" class="input" style="max-width:260px;" aria-label="Open project">
               <option value="">Open project…</option>
             </select>
-            <button id="proj-dup" class="btn ghost">Duplicate</button>
-            <button id="proj-del" class="btn ghost">Delete</button>
-            <button id="proj-export" class="btn ghost">Export</button>
-            <button id="proj-import" class="btn ghost">Import</button>
+            <button id="proj-dup" class="btn ghost" aria-label="Duplicate project">Duplicate</button>
+            <button id="proj-del" class="btn ghost" aria-label="Delete project">Delete</button>
+            <button id="proj-export" class="btn ghost" aria-label="Export project to JSON">Export</button>
+            <button id="proj-import" class="btn ghost" aria-label="Import project from JSON">Import</button>
             <input type="file" id="proj-import-file" accept="application/json" style="display:none;">
           </div>
         </div>
@@ -101,10 +110,10 @@
       </div>
       <div class="row" style="margin-top:8px;">
         <div class="col" style="flex:1;">
-          <div class="controls" style="justify-content:flex-start; gap:6px;">
-            <button id="mode-form" class="btn">Form</button>
-            <button id="mode-json" class="btn secondary">JSON</button>
-            <button id="sync-from-json" class="btn ghost" title="Parse JSON into form">Sync from JSON</button>
+          <div class="controls" style="justify-content:flex-start; gap:6px;" role="group" aria-label="Editor mode">
+            <button id="mode-form" class="btn" aria-pressed="true">Form</button>
+            <button id="mode-json" class="btn secondary" aria-pressed="false">JSON</button>
+            <button id="sync-from-json" class="btn ghost" title="Parse JSON into form" aria-label="Parse JSON into form">Sync from JSON</button>
           </div>
         </div>
       </div>
@@ -123,9 +132,9 @@
         </div>
         <div class="split-right">
           <!-- Live preview pane (updates while editing) -->
-          <div id="live-preview-pane" class="panel sticky">
-            <div class="help muted">Live Preview</div>
-            <iframe id="live-preview"></iframe>
+          <div id="live-preview-pane" class="panel sticky" role="region" aria-labelledby="live-preview-heading">
+            <div id="live-preview-heading" class="help muted">Live Preview</div>
+            <iframe id="live-preview" title="Live preview of generated email"></iframe>
           </div>
         </div>
       </div>
@@ -135,12 +144,13 @@
       </div>
     </section>
 
-    <section id="step-3" class="panel" style="display:none;">
-      <div class="tabs">
-        <div class="tab">1. Choose Template</div>
-        <div class="tab">2. Configure</div>
-        <div class="tab active">3. Preview & Send</div>
+    <section id="step-3" class="panel" style="display:none;" role="region" aria-labelledby="preview-send-heading">
+      <div class="tabs" role="tablist" aria-label="Steps">
+        <div class="tab" role="tab" aria-selected="false" tabindex="-1">1. Choose Template</div>
+        <div class="tab" role="tab" aria-selected="false" tabindex="-1">2. Configure</div>
+        <div class="tab active" role="tab" aria-selected="true" tabindex="0">3. Preview & Send</div>
       </div>
+      <h2 id="preview-send-heading" class="muted" style="font-size:14px;">Final preview and send actions</h2>
       <div class="row">
         <div class="col">
           <div class="help muted">Preview</div>
