@@ -1,9 +1,9 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Email Builder — Project Updates</title>
+  <title>Email Builder â€” Project Updates</title>
   <style>
     :root {
       --bg:#0b0c0e; --panel:#141414; --text:#e6e6e6; --muted:#a0a6ad; --border:#242424;
@@ -51,7 +51,7 @@
 <body>
   <header>
     <div class="bar">
-      <h1>Email Builder — Project Updates</h1>
+      <h1>Email Builder â€” Project Updates</h1>
       <div id="status-bar" role="status" aria-live="polite" class="muted"></div>
     </div>
   </header>
@@ -64,7 +64,7 @@
         <div class="split-left">
           <div class="panel">
             <div class="controls" style="justify-content:space-between;">
-              <div class="help muted">Templates</div>
+              <div class="help muted">Templates</div><div class="controls"><button id="load-template" class="btn">Load HTML</button><input type="file" id="template-file" accept="text/html,.html" style="display:none;"></div>
               <button id="new-from-scratch" class="btn ghost">New from Sample</button>
             </div>
             <div id="tmpl-list" class="templates" role="list"></div>
@@ -90,7 +90,7 @@
     <section id="project-view" class="panel" style="display:none;" role="region" aria-labelledby="project-heading">
       <div class="row" style="align-items:center; justify-content:space-between;">
         <div class="controls">
-          <button id="back-dashboard" class="btn secondary" aria-label="Back to dashboard">← Dashboard</button>
+          <button id="back-dashboard" class="btn secondary" aria-label="Back to dashboard">â† Dashboard</button>
           <span class="muted" style="margin-left:8px;">Template: <strong id="proj-template-name"></strong></span>
         </div>
         <div class="controls">
@@ -105,14 +105,7 @@
           <label class="muted" for="proj-name-input">Project Name</label>
           <input id="proj-name-input" class="input" type="text" placeholder="Project name">
         </div>
-        <div class="col" style="flex:1;">
-          <label class="muted" for="to">To</label>
-          <input type="text" id="to" class="input" placeholder="recipient@example.com">
-        </div>
-        <div class="col" style="flex:2;">
-          <label class="muted" for="subject">Subject</label>
-          <input type="text" id="subject" class="input" placeholder="Weekly Update — {{projectName}}">
-        </div>
+        <div class="col" style="flex:1;"><label class="muted" for="proj-load-template">Template</label><div class="controls"><button id="proj-load-template" class="btn">Load HTML</button><input type="file" id="proj-template-file" accept="text/html,.html" style="display:none;"></div></div>
       </div>
       <!-- Version strip -->
       <div class="panel" style="margin-top:12px;">
@@ -134,9 +127,7 @@
             <div class="controls">
               <button id="copy-html" class="btn ghost">Copy HTML</button>
               <button id="download-html" class="btn ghost">Download HTML</button>
-              <button id="download-eml" class="btn ghost">Download EML</button>
-              <button id="open-outlook-web" class="btn" style="background:var(--accent-2); color:#000;">Open in Outlook Web</button>
-            </div>
+              </div>
           </div>
           <div class="split" style="margin-top:8px; align-items:flex-start;">
             <div class="split-left">
@@ -163,3 +154,6 @@
   <script src="./app.js"></script>
 </body>
 </html>
+
+
+
