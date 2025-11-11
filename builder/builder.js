@@ -59,6 +59,284 @@
       buildHtml
     },
     {
+      id: 'hermes-mythic-light-alt',
+      name: 'Mythic Light — Hermes Alt',
+      description: 'Light variant with hero, metric cards, split columns, and route timeline.',
+      sampleConfig: `{
+  "projectName": "Project Hermes",
+  "projectIconUrl": "https://example.com/hermes-icon.png",
+  "bannerUrl": "https://images.unsplash.com/photo-1519681393784-d120267933ba?w=1200",
+  "updateDate": "2025-11-10",
+  "preheader": "Hermes dispatch — weekly status and next steps.",
+  "updateSummary": "Swift progress on the relays and courier tracking module; infra updated.",
+  "progressPercent": 72,
+  "sprintNumber": "9",
+  "etaDate": "Jan 20, 2026",
+
+  "metrics": [
+    { "label": "Deliveries", "value": "12.4k", "delta": "+8%", "trend": "up" },
+    { "label": "Latency", "value": "142ms", "delta": "-12%", "trend": "down" },
+    { "label": "Uptime", "value": "99.95%", "delta": "+0.02%", "trend": "up" }
+  ],
+
+  "spotlight": "Courier network stabilized in new regions; early telemetry promising.",
+  "quote": { "text": "Swift as thought, Hermes crosses the sky.", "author": "Homer" },
+
+  "whatsNew": [ "Relay pipeline refactor", "Courier app offline queue", "Routing heuristic update" ],
+  "risks": [ "Map tiles quota", "Webhook retry cascades" ],
+
+  "workstreams": [ { "label": "Relays", "percent": 80 }, { "label": "Courier App", "percent": 65 } ],
+  "milestoneTrackPercent": 55,
+  "currentMilestoneIndex": 1,
+  "milestones": [
+    { "label": "Specs", "date": "Oct 12" },
+    { "label": "Prototype", "date": "Nov 08", "current": true },
+    { "label": "Beta", "date": "Dec 05" },
+    { "label": "RC", "date": "Jan 10" },
+    { "label": "GA", "date": "Jan 20" }
+  ],
+
+  "contributors": [
+    { "name": "Daphne", "imageUrl": "https://example.com/daphne.jpg" },
+    { "name": "Orion", "imageUrl": "https://example.com/orion.jpg" }
+  ],
+
+  "cta": { "label": "Open Dispatch Console", "url": "https://example.com/hermes" },
+  "footerText": "Dispatch notice for {{PROJECT_NAME}}. Manage preferences in your profile."
+}`,
+      buildHtml: function buildHtmlHermesAlt(cfg) {
+        const esc = (s)=>String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+        const clamp=(n)=>Math.max(0,Math.min(100,+n||0));
+
+        // Base fields
+        const projectName = String(cfg.projectName || 'Project Hermes');
+        const projectIconUrl = String(cfg.projectIconUrl || '');
+        const bannerUrl = String(cfg.bannerUrl || '');
+        const updateDate = String(cfg.updateDate || new Date().toISOString().slice(0,10));
+        const preheader = String(cfg.preheader || `Hermes dispatch — status and next steps.`);
+        const updateSummary = String(cfg.updateSummary || '');
+        const progressPercent = clamp(cfg.progressPercent);
+        const sprintNumber = String(cfg.sprintNumber || '');
+        const etaDate = String(cfg.etaDate || '');
+        const whatsNew = cfg.whatsNew || [];
+        const risks = cfg.risks || [];
+        const workstreams = cfg.workstreams || [];
+        const milestones = cfg.milestones || [];
+        const milestoneTrackPercent = clamp(cfg.milestoneTrackPercent);
+        const currentMilestoneIndex = (typeof cfg.currentMilestoneIndex==='number')?cfg.currentMilestoneIndex:undefined;
+        const contributors = cfg.contributors || [];
+        const metrics = cfg.metrics || [];
+        const spotlight = cfg.spotlight || '';
+        const quote = cfg.quote || {};
+        const cta = cfg.cta || {}; const ctaLabel = cta.label || 'Open Console'; const ctaUrl = cta.url || '#';
+        const footerHtmlTpl = cfg.footerHtml; const footerTextTpl = cfg.footerText;
+
+        function metricCard(m){
+          const label=esc(m.label||''); const value=esc(m.value||''); const delta=String(m.delta||''); const trend=(m.trend||'').toLowerCase();
+          const color = trend==='down' ? '#B45309' : '#065F46';
+          const bg = trend==='down' ? '#FEF3C7' : '#D1FAE5';
+          const border = trend==='down' ? '#FCD34D' : '#34D399';
+          return `
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#F9FAFB; border:1px solid #E5E7EB; border-radius:12px;">
+              <tr><td style="padding:12px 12px 8px 12px; font-family:Segoe UI,Roboto,Arial,sans-serif; font-size:12px; color:#6B7280;">${label}</td></tr>
+              <tr><td style="padding:0 12px 10px 12px; font-family:Segoe UI,Roboto,Arial,sans-serif; font-size:22px; line-height:28px; color:#111827; font-weight:700;">${value}</td></tr>
+              <tr><td style="padding:0 12px 12px 12px;"><span style="display:inline-block; font-family:Segoe UI,Roboto,Arial,sans-serif; font-size:11px; color:${color}; border:1px solid ${border}; background:${bg}; padding:2px 8px; border-radius:9999px;">${esc(delta)}</span></td></tr>
+            </table>`;
+        }
+
+        function metricsRow(ms){
+          if(!ms||!ms.length) return '';
+          const a=ms[0]||{}, b=ms[1]||{}, c=ms[2]||{};
+          return `
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+            <tr>
+              <td class="stack" width="33%" valign="top" style="padding-right:8px;">${metricCard(a)}</td>
+              <td class="stack" width="33%" valign="top" style="padding:0 4px;">${metricCard(b)}</td>
+              <td class="stack" width="33%" valign="top" style="padding-left:8px;">${metricCard(c)}</td>
+            </tr>
+          </table>`;
+        }
+
+        function list(items, color){ if(!items||!items.length) return '<li>—</li>'; return items.map(x=>`<li style="color:${color};">${esc(x)}</li>`).join(''); }
+
+        function milestoneRow(ms, idx){ if(!ms||!ms.length) return ''; const w=(100/ms.length).toFixed(2); return ms.map((m,i)=>{ const cur = !!m.current || (typeof idx==='number'&&idx===i); const dot = cur ? 'background:#2D7FF9; border:1px solid #1D4ED8;' : 'background:#F3F4F6; border:1px solid #D1D5DB;'; return `
+            <td align="center" style="width:${w}%;">
+              <div style="height:10px;"><span style="display:inline-block; width:10px; height:10px; border-radius:9999px; ${dot}"></span></div>
+              <div style="font-family:Segoe UI,Roboto,Arial,sans-serif; font-size:12px; color:#374151; margin-top:6px;">${esc(m.label||'')}</div>
+              <div style="font-family:Segoe UI,Roboto,Arial,sans-serif; font-size:11px; color:#6B7280;">${esc(m.date||'')}</div>
+            </td>`; }).join(''); }
+
+        function people(ps){ if(!ps||!ps.length) return ''; return ps.map((p,i)=>{ const name=esc(p.name||''); const img=esc(p.imageUrl||''); const b=(i<ps.length-1)?'8px':'0'; return `
+          <tr>
+            <td width="40" valign="middle" style="padding:0 8px ${b} 0;"><img src="${img}" width="32" height="32" alt="${name}" style="display:block; border-radius:9999px; background:#F3F4F6;"></td>
+            <td valign="middle" style="padding:0 0 ${b} 0;"><div style="font-family:Segoe UI,Roboto,Arial,sans-serif; font-size:13px; line-height:18px; color:#374151;">${name}</div></td>
+          </tr>`; }).join(''); }
+
+        let footerBlock;
+        if (typeof footerHtmlTpl === 'string' && footerHtmlTpl.length) {
+          footerBlock = footerHtmlTpl.replace(/\{\{PROJECT_NAME\}\}/g, esc(projectName));
+        } else if (typeof footerTextTpl === 'string' && footerTextTpl.length) {
+          const resolved = footerTextTpl.replace(/\{\{PROJECT_NAME\}\}/g, projectName);
+          footerBlock = `<div style="font-family:Segoe UI,Roboto,Arial,sans-serif; font-size:12px; line-height:18px; color:#6B7280;">${esc(resolved)}</div>`;
+        } else {
+          footerBlock = `<div style="font-family:Segoe UI,Roboto,Arial,sans-serif; font-size:12px; line-height:18px; color:#6B7280;">Dispatch notice for <span style="color:#111827; font-weight:600;">${esc(projectName)}</span>. Manage preferences in your profile.</div>`;
+        }
+
+        const safeProject = esc(projectName);
+        const safeSummary = esc(updateSummary).replace(/\n/g,'<br>');
+        const safePreheader = esc(preheader);
+        const safeIcon = esc(projectIconUrl);
+        const safeBanner = esc(bannerUrl);
+
+        const whatsNewHtml = list(whatsNew, '#374151');
+        const risksHtml = list(risks, '#7F1D1D');
+        const workstreamsHtml = workstreams && workstreams.length ? workstreams.map(w=>{
+          const pct = clamp(w.percent);
+          return `
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:0 0 12px 0;">
+              <tr>
+                <td valign="middle" style="font-family:Segoe UI,Roboto,Arial,sans-serif; font-size:13px; color:#374151;">${esc(w.label||'')}</td>
+                <td align="right" valign="middle" style="font-family:Segoe UI,Roboto,Arial,sans-serif; font-size:12px; color:#6B7280; white-space:nowrap;">${pct}%</td>
+              </tr>
+              <tr>
+                <td colspan="2" style="padding-top:6px;">
+                  <div style="background:#E5E7EB; border-radius:9999px; overflow:hidden; height:8px;">
+                    <div style="background:#2D7FF9; width:${pct}%; height:8px;"></div>
+                  </div>
+                </td>
+              </tr>
+            </table>`;
+        }).join(''):'';
+
+        const milestonesHtml = milestoneRow(milestones, currentMilestoneIndex);
+        const contributorsHtml = people(contributors);
+
+        return `<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  <meta name="color-scheme" content="light">
+  <meta name="supported-color-schemes" content="light">
+  <title>${safeProject} — Dispatch</title>
+  <style>
+    @media (max-width: 600px) { .container { width: 100% !important; } .p-24 { padding: 16px !important; } .stack { display: block !important; width: 100% !important; } .align-right { text-align: left !important; } }
+  </style>
+  <!--[if mso]><style type="text/css">body, table, td { font-family: Arial, sans-serif !important; }</style><![endif]-->
+  <meta name="format-detection" content="telephone=no,address=no,email=no,date=no,url=no">
+</head>
+<body style="margin:0; padding:0; background:#F5F7FA; color:#111827; -webkit-text-size-adjust:100%; -ms-text-size-adjust:100%;">
+  <div style="display:none; max-height:0; overflow:hidden; opacity:0; mso-hide:all;">${safePreheader}</div>
+  <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="background:#F5F7FA;">
+    <tr>
+      <td align="center" style="padding:24px;">
+        <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="600" class="container" style="width:600px; max-width:600px; background:#FFFFFF; border:1px solid #E5E7EB; border-radius:16px; box-shadow:0 1px 3px rgba(0,0,0,0.06);">
+          <!-- Hero banner -->
+          ${safeBanner ? `<tr><td style="border-top-left-radius:16px; border-top-right-radius:16px; overflow:hidden;"><img src="${safeBanner}" width="600" alt="${safeProject} banner" style="display:block; width:100%; height:auto; border-top-left-radius:16px; border-top-right-radius:16px;"></td></tr>` : ''}
+          <!-- Header -->
+          <tr>
+            <td class="p-24" style="padding:16px 24px 12px 24px;">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                <tr>
+                  <td width="52" valign="middle" style="width:52px;">
+                    <img src="${safeIcon}" width="48" height="48" alt="${safeProject} icon" style="display:block; border-radius:10px; outline:none; border:1px solid #E5E7EB; background:#FAFAFA;">
+                  </td>
+                  <td valign="middle" style="padding-left:12px;">
+                    <div style="font-family:Segoe UI,Roboto,Arial,sans-serif; font-size:12px; line-height:16px; color:#6B7280; letter-spacing:.3px;">Dispatch</div>
+                    <div style="font-family:Segoe UI,Roboto,Arial,sans-serif; font-size:24px; line-height:28px; font-weight:700; color:#111827;">${safeProject}</div>
+                  </td>
+                  <td valign="middle" align="right" class="align-right">
+                    <div style="font-family:Segoe UI,Roboto,Arial,sans-serif; font-size:12px; line-height:16px; color:#6B7280;">${esc(updateDate)}</div>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          <!-- Mythic ornament divider -->
+          <tr><td style="padding:0 24px;"><div style="height:1px; background:#E5E7EB; line-height:1px;">&nbsp;</div><div style="text-align:center; padding:6px 0; color:#1D4ED8; font-size:12px; letter-spacing:4px;">· · ·  H  E  R  M  E  S  · · ·</div></td></tr>
+
+          <!-- Summary -->
+          <tr>
+            <td class="p-24" style="padding:8px 24px 0 24px;">
+              <div style="font-family:Segoe UI,Roboto,Arial,sans-serif; font-size:14px; line-height:20px; color:#1F2937;">${safeSummary}</div>
+            </td>
+          </tr>
+
+          <!-- Metrics cards -->
+          ${metrics && metrics.length ? `<tr><td style="padding:12px 24px 0 24px;">${metricsRow(metrics)}</td></tr>` : ''}
+
+          <!-- Spotlight / Callout -->
+          ${spotlight ? `<tr><td style="padding:12px 24px 0 24px;"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#FDFDFE; border:1px solid #DBEAFE; border-left:4px solid #1D4ED8; border-radius:10px;"><tr><td style="padding:12px; font-family:Segoe UI,Roboto,Arial,sans-serif; font-size:13px; color:#1F2937;">${esc(spotlight)}</td></tr></table></td></tr>` : ''}
+
+          <!-- Split columns: What’s in Flight / Headwinds -->
+          <tr>
+            <td style="padding:12px 24px 0 24px;">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                <tr>
+                  <td class="stack" width="50%" valign="top" style="padding-right:8px;">
+                    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#FFFFFF; border:1px solid #E5E7EB; border-radius:12px;">
+                      <tr><td style="padding:16px;">
+                        <div style="font-family:Segoe UI,Roboto,Arial,sans-serif; font-size:14px; line-height:20px; font-weight:600; color:#111827; margin-bottom:8px;">What’s in Flight</div>
+                        <ul style="padding-left:18px; margin:0; font-family:Segoe UI,Roboto,Arial,sans-serif; font-size:13px; line-height:20px;">${whatsNewHtml}</ul>
+                      </td></tr>
+                    </table>
+                  </td>
+                  <td class="stack" width="50%" valign="top" style="padding-left:8px;">
+                    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#FFFFFF; border:1px solid #E5E7EB; border-radius:12px;">
+                      <tr><td style="padding:16px;">
+                        <div style="font-family:Segoe UI,Roboto,Arial,sans-serif; font-size:14px; line-height:20px; font-weight:600; color:#111827; margin-bottom:8px;">Headwinds</div>
+                        <ul style="padding-left:18px; margin:0; font-family:Segoe UI,Roboto,Arial,sans-serif; font-size:13px; line-height:20px;">${risksHtml}</ul>
+                      </td></tr>
+                    </table>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- Route timeline -->
+          <tr>
+            <td style="padding:12px 24px 0 24px;">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#FFFFFF; border:1px solid #E5E7EB; border-radius:12px;">
+                <tr><td style="padding:16px;">
+                  <div style="font-family:Segoe UI,Roboto,Arial,sans-serif; font-size:14px; line-height:20px; font-weight:600; color:#111827; margin-bottom:8px;">Route</div>
+                  <div style="background:#E5E7EB; border-radius:9999px; overflow:hidden; height:8px;"><div style="background:#2D7FF9; width:${milestoneTrackPercent}%; height:8px;"></div></div>
+                  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top:8px;"><tr>${milestonesHtml}</tr></table>
+                </td></tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- Optional quote -->
+          ${(quote && (quote.text||quote.author)) ? `<tr><td style="padding:12px 24px 0 24px;"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#F9FAFB; border:1px solid #E5E7EB; border-radius:12px;"><tr><td style="padding:14px; font-family:Georgia, 'Times New Roman', serif; font-size:14px; color:#111827;">“${esc(quote.text||'') }”<div style="font-family:Segoe UI,Roboto,Arial,sans-serif; font-size:12px; color:#6B7280; margin-top:6px;">— ${esc(quote.author||'')}</div></td></tr></table></td></tr>` : ''}
+
+          <!-- CTA -->
+          <tr>
+            <td align="left" style="padding:20px 24px 24px 24px;">
+              <!--[if mso]><v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" href="${esc(ctaUrl)}" style="height:44px;v-text-anchor:middle;width:240px;" arcsize="12%" stroke="f" fillcolor="#2D7FF9"><w:anchorlock/><center style="color:#ffffff; font-family:Segoe UI, Arial, sans-serif; font-size:14px; font-weight:700;">${esc(ctaLabel)}</center></v:roundrect><![endif]-->
+              <!--[if !mso]><!-- -->
+              <a href="${esc(ctaUrl)}" style="background:#2D7FF9; color:#ffffff; text-decoration:none; font-family:Segoe UI,Roboto,Arial,sans-serif; font-size:14px; font-weight:700; line-height:44px; display:inline-block; min-width:240px; text-align:center; border-radius:6px;">${esc(ctaLabel)}</a>
+              <!--<![endif]-->
+            </td>
+          </tr>
+
+          <!-- Contributors -->
+          ${contributors && contributors.length ? `<tr><td style="padding:12px 24px 0 24px;"><div style=\"font-family:Segoe UI,Roboto,Arial,sans-serif; font-size:12px; line-height:16px; color:#6B7280; margin-bottom:8px;\">Contributors</div><table role=\"presentation\" width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\">${contributorsHtml}</table></td></tr>` : ''}
+
+          <!-- Footer -->
+          <tr><td style="padding:0 24px 20px 24px;"><div style="height:1px; background:#E5E7EB; line-height:1px;">&nbsp;</div></td></tr>
+          <tr><td style="padding:8px 24px 24px 24px;">${footerBlock}</td></tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+  <div style="display:none; white-space:nowrap; font:15px courier; line-height:0;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</div>
+</body>
+</html>`;
+      }
+    },
+    {
       id: 'mythic-light-hermes',
       name: 'Mythic Light — Hermes Update',
       description: 'Light theme with subtle Greek myth aesthetics (Hermes).',
