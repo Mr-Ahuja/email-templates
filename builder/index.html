@@ -58,6 +58,29 @@
         <div class="tab active">2. Configure</div>
         <div class="tab">3. Preview & Send</div>
       </div>
+      <!-- Project manager -->
+      <div class="row" style="align-items:center; margin-bottom:8px;">
+        <div class="col" style="flex:2;">
+          <label class="muted">Project Name</label>
+          <input type="text" id="project-title" class="input" placeholder="My Weekly Update">
+        </div>
+        <div class="col" style="flex:3;">
+          <div class="controls" style="justify-content:flex-start; gap:6px;">
+            <button id="proj-new" class="btn ghost">New</button>
+            <button id="proj-save" class="btn">Save</button>
+            <button id="proj-save-as" class="btn secondary">Save As</button>
+            <select id="proj-select" class="input" style="max-width:260px;">
+              <option value="">Open project…</option>
+            </select>
+            <button id="proj-dup" class="btn ghost">Duplicate</button>
+            <button id="proj-del" class="btn ghost">Delete</button>
+            <button id="proj-export" class="btn ghost">Export</button>
+            <button id="proj-import" class="btn ghost">Import</button>
+            <input type="file" id="proj-import-file" accept="application/json" style="display:none;">
+          </div>
+        </div>
+      </div>
+
       <div class="row">
         <div class="col">
           <label class="muted">To</label>
@@ -68,8 +91,26 @@
           <input type="text" id="subject" class="input" placeholder="Weekly Update — {{projectName}}">
         </div>
       </div>
-      <div class="help muted">JSON config for the selected template:</div>
-      <textarea id="config-editor" spellcheck="false"></textarea>
+      <div class="row" style="margin-top:8px;">
+        <div class="col" style="flex:1;">
+          <div class="controls" style="justify-content:flex-start; gap:6px;">
+            <button id="mode-form" class="btn">Form</button>
+            <button id="mode-json" class="btn secondary">JSON</button>
+            <button id="sync-from-json" class="btn ghost" title="Parse JSON into form">Sync from JSON</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Form pane (dynamic) -->
+      <div id="form-pane" class="panel" style="margin-top:8px; display:none;">
+        <div id="dynamic-form"></div>
+      </div>
+
+      <!-- JSON pane -->
+      <div id="json-pane" class="panel" style="margin-top:8px;">
+        <div class="help muted">JSON config for the selected template:</div>
+        <textarea id="config-editor" spellcheck="false"></textarea>
+      </div>
       <div class="controls">
         <button id="back-to-1" class="btn secondary">Back</button>
         <button id="to-step-3" class="btn">Next</button>
@@ -101,4 +142,3 @@
   <script src="./builder.js"></script>
 </body>
 </html>
-

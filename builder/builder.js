@@ -1132,6 +1132,207 @@
 </html>`;
   }
 
+  // --- Avatar SVG generator ---
+  const AVATAR_PALETTE = ['#00BCD4','#F59E0B','#22C55E','#EF4444','#8B5CF6','#10B981','#F472B6','#60A5FA'];
+  function hash32(str){ let h=2166136261>>>0; for(let i=0;i<str.length;i++){ h^=str.charCodeAt(i); h=Math.imul(h,16777619);} return h>>>0; }
+  function initials(name){ if(!name) return '?'; const parts=String(name).trim().split(/\s+/); const a=(parts[0]||'')[0]||''; const b=(parts.length>1? (parts[parts.length-1]||'')[0] : '')||''; return (a+b||a||'?').toUpperCase(); }
+  function svgAvatar(name, seed){ const text=initials(name); const h=seed!=null?seed:hash32(name); const bg=AVATAR_PALETTE[h % AVATAR_PALETTE.length]; const svg = `<?xml version="1.0" encoding="UTF-8"?><svg xmlns="http://www.w3.org/2000/svg" width="128" height="128"><rect width="100%" height="100%" fill="${bg}"/><text x="50%" y="54%" dy=".1em" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="56" fill="#000">${text}</text></svg>`; return 'data:image/svg+xml;utf8,' + encodeURIComponent(svg); }
+
+  // --- Storage (local projects) ---
+  const STORAGE_KEY = 'emailBuilder.projects.v1';
+  let projectIndex = {}; // id -> {id,name,templateId,config,updatedAt}
+  let currentProjectId = null;
+  function loadProjects(){ try{ const s=localStorage.getItem(STORAGE_KEY); projectIndex = s? JSON.parse(s):{}; }catch{ projectIndex={}; } }
+  function saveProjects(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(projectIndex)); }
+  function genId(){ return 'p_' + Math.random().toString(36).slice(2,10) + Date.now().toString(36).slice(-4); }
+  function listProjects(){ return Object.values(projectIndex).sort((a,b)=> (b.updatedAt||0)-(a.updatedAt||0)); }
+
+  // --- Form builder helpers ---
+  function deepGet(obj, path){ if(!path) return obj; const parts=path.split('.'); let cur=obj; for(const p of parts){ if(cur==null) return undefined; cur = cur[p]; } return cur; }
+  function deepSet(obj, path, value){ const parts=path.split('.'); let cur=obj; for(let i=0;i<parts.length-1;i++){ const k=parts[i]; if(cur[k]==null || typeof cur[k] !== 'object') cur[k] = {}; cur = cur[k]; } cur[parts[parts.length-1]] = value; }
+  function ensureArray(obj, key){ if(!Array.isArray(obj[key])) obj[key] = []; return obj[key]; }
+  function clamp(n, lo=0, hi=100){ n = +n || 0; return Math.max(lo, Math.min(hi, n)); }
+
+  function inferType(key, value){
+    if (Array.isArray(value)) return 'list';
+    if (typeof value === 'number') return key.toLowerCase().includes('percent') ? 'percent' : 'number';
+    if (typeof value === 'boolean') return 'checkbox';
+    if (typeof value === 'string') {
+      const lk = key.toLowerCase();
+      if (lk.includes('color')) return 'color';
+      if (lk.includes('url') || lk.includes('icon')) return 'image';
+      if (lk.includes('summary') || lk.includes('footerhtml') || lk.includes('footertext') || lk.includes('quote')) return 'textarea';
+      return 'text';
+    }
+    if (typeof value === 'object' && value) return 'group';
+    return 'text';
+  }
+
+  function buildPrimitiveInput(path, label, type, value, onChange){
+    const wrap = document.createElement('div');
+    wrap.style.marginBottom = '10px';
+    const lab = document.createElement('div'); lab.className='muted'; lab.textContent = label; wrap.appendChild(lab);
+    if (type === 'textarea'){
+      const ta = document.createElement('textarea'); ta.className='input'; ta.style.minHeight='80px'; ta.value = value||''; ta.addEventListener('input', ()=> onChange(ta.value)); wrap.appendChild(ta);
+    } else if (type === 'checkbox'){
+      const cb = document.createElement('input'); cb.type='checkbox'; cb.checked = !!value; cb.addEventListener('change', ()=> onChange(cb.checked)); wrap.appendChild(cb);
+    } else if (type === 'percent'){
+      const row = document.createElement('div'); row.style.display='flex'; row.style.gap='8px';
+      const num = document.createElement('input'); num.type='number'; num.className='input'; num.style.maxWidth='120px'; num.min='0'; num.max='100'; num.step='1'; num.value = (value??0);
+      num.addEventListener('input', ()=> onChange(clamp(num.value)) );
+      const rng = document.createElement('input'); rng.type='range'; rng.min='0'; rng.max='100'; rng.step='1'; rng.value = (value??0);
+      rng.addEventListener('input', ()=> { num.value = rng.value; onChange(clamp(rng.value)); });
+      row.appendChild(num); row.appendChild(rng); wrap.appendChild(row);
+    } else if (type === 'color'){
+      const row = document.createElement('div'); row.style.display='flex'; row.style.gap='8px';
+      const color = document.createElement('input'); color.type='color'; color.value = /^#/.test(value||'') ? value : '#000000';
+      const txt = document.createElement('input'); txt.type='text'; txt.className='input'; txt.value = value||'';
+      color.addEventListener('input', ()=> { txt.value = color.value; onChange(txt.value); });
+      txt.addEventListener('input', ()=> onChange(txt.value));
+      row.appendChild(color); row.appendChild(txt); wrap.appendChild(row);
+    } else if (type === 'image'){
+      const modeRow = document.createElement('div'); modeRow.style.display='flex'; modeRow.style.gap='8px'; modeRow.style.alignItems='center';
+      const urlBtn = document.createElement('button'); urlBtn.className='btn ghost'; urlBtn.textContent='Use URL';
+      const svgBtn = document.createElement('button'); svgBtn.className='btn ghost'; svgBtn.textContent='SVG from name';
+      const urlInput = document.createElement('input'); urlInput.type='text'; urlInput.className='input'; urlInput.placeholder='https://...'; urlInput.value = value||''; urlInput.style.marginTop='6px';
+      const prev = document.createElement('img'); prev.alt='preview'; prev.style.width='40px'; prev.style.height='40px'; prev.style.borderRadius='50%'; prev.style.border='1px solid #2a2a2a'; prev.style.marginLeft='8px';
+      function setUrlMode(){ urlBtn.className='btn'; svgBtn.className='btn ghost'; urlInput.style.display=''; prev.style.display=''; prev.src = urlInput.value; }
+      function setSvgMode(){ urlBtn.className='btn ghost'; svgBtn.className='btn'; urlInput.style.display='none'; prev.style.display=''; const displayName = path.toLowerCase().includes('projecticonurl') ? deepGet(currentConfig,'projectName') : guessNameForImage(path); prev.src = svgAvatar(displayName||''); onChange(prev.src); }
+      function guessNameForImage(path){
+        // try sibling 'name' for contributors, else projectName
+        if (path.includes('contributors')) return ' ';
+        return deepGet(currentConfig,'projectName') || 'Project';
+      }
+      urlBtn.addEventListener('click', (e)=>{ e.preventDefault(); setUrlMode(); onChange(urlInput.value); });
+      svgBtn.addEventListener('click', (e)=>{ e.preventDefault(); setSvgMode(); });
+      urlInput.addEventListener('input', ()=> { prev.src = urlInput.value; onChange(urlInput.value); });
+      modeRow.appendChild(urlBtn); modeRow.appendChild(svgBtn); modeRow.appendChild(prev);
+      wrap.appendChild(modeRow); wrap.appendChild(urlInput);
+      // default to URL mode
+      setUrlMode();
+    } else {
+      const inp = document.createElement('input'); inp.type = (type==='number'?'number':'text'); inp.className='input'; inp.value = (value??''); inp.addEventListener('input', ()=> onChange(inp.value) ); wrap.appendChild(inp);
+    }
+    return wrap;
+  }
+
+  function buildListPrimitive(path, label, arr, onChange){
+    const wrap = document.createElement('div');
+    const title = document.createElement('div'); title.className='muted'; title.textContent = label; wrap.appendChild(title);
+    const listDiv = document.createElement('div'); wrap.appendChild(listDiv);
+    function render(){
+      listDiv.innerHTML = '';
+      (arr||[]).forEach((val, idx)=>{
+        const row = document.createElement('div'); row.style.display='flex'; row.style.gap='8px'; row.style.margin='6px 0';
+        const inp = document.createElement('input'); inp.type='text'; inp.className='input'; inp.style.flex='1'; inp.value = val||'';
+        inp.addEventListener('input', ()=> { arr[idx] = inp.value; onChange(arr); });
+        const del = document.createElement('button'); del.className='btn ghost'; del.textContent='Remove'; del.addEventListener('click', (e)=>{ e.preventDefault(); arr.splice(idx,1); onChange(arr); render(); });
+        row.appendChild(inp); row.appendChild(del); listDiv.appendChild(row);
+      });
+    }
+    const add = document.createElement('button'); add.className='btn secondary'; add.textContent='Add Item'; add.addEventListener('click', (e)=>{ e.preventDefault(); arr.push(''); onChange(arr); render(); });
+    render(); wrap.appendChild(add); return wrap;
+  }
+
+  function buildListObjects(path, label, arr, itemSpec, onChange){
+    const wrap = document.createElement('div');
+    const title = document.createElement('div'); title.className='muted'; title.textContent = label; wrap.appendChild(title);
+    const listDiv = document.createElement('div'); wrap.appendChild(listDiv);
+    function render(){
+      listDiv.innerHTML = '';
+      (arr||[]).forEach((obj, idx)=>{
+        const card = document.createElement('div'); card.className='panel'; card.style.padding='12px'; card.style.margin='8px 0';
+        const head = document.createElement('div'); head.className='muted'; head.textContent = `Item ${idx+1}`; card.appendChild(head);
+        const grid = document.createElement('div'); grid.style.display='grid'; grid.style.gridTemplateColumns='repeat(auto-fit,minmax(160px,1fr))'; grid.style.gap='8px';
+        itemSpec.forEach(f=>{
+          const key = f.path; const t=f.type||inferType(key, obj[key]);
+          const val = obj[key];
+          const ctl = buildPrimitiveInput(`${path}.${idx}.${key}`, f.label||key, t, val, (nv)=>{ obj[key] = (t==='percent'? clamp(nv): (t==='number'? (+nv||0): (t==='checkbox'? !!nv : nv))); onChange(arr); });
+          grid.appendChild(ctl);
+        });
+        const del = document.createElement('button'); del.className='btn ghost'; del.textContent='Remove'; del.addEventListener('click', (e)=>{ e.preventDefault(); arr.splice(idx,1); onChange(arr); render(); });
+        card.appendChild(grid); card.appendChild(del); listDiv.appendChild(card);
+      });
+    }
+    const add = document.createElement('button'); add.className='btn secondary'; add.textContent='Add Item'; add.addEventListener('click', (e)=>{ e.preventDefault(); arr.push({}); onChange(arr); render(); });
+    render(); wrap.appendChild(add); return wrap;
+  }
+
+  function renderFormFromConfig(cfg, templateId){
+    const container = document.getElementById('dynamic-form');
+    container.innerHTML = '';
+    // Basic scalar fields we care about, in useful order
+    const scalarOrder = [
+      'projectName','projectIconUrl','bannerUrl','updateDate','preheader','updateSummary','progressPercent','sprintNumber','etaDate','statusLabel',
+      'milestoneTrackPercent','currentMilestoneIndex','accentColor','accentAltColor','spotlight'
+    ];
+    const groups = [];
+    const scalars = document.createElement('div');
+    scalarOrder.forEach(k=>{
+      if (k in cfg || (k==='bannerUrl' && templateId.includes('hermes'))){
+        const t = inferType(k, cfg[k]);
+        const ctl = buildPrimitiveInput(k, k, t, cfg[k], (nv)=>{ if (t==='percent') nv=clamp(nv); deepSet(currentConfig,k,nv); syncJsonFromConfig(); schedulePreview(); });
+        scalars.appendChild(ctl);
+      }
+    });
+    if (scalars.childNodes.length){ const sec=document.createElement('div'); const hdr=document.createElement('h3'); hdr.textContent='Basics'; hdr.style.fontSize='14px'; hdr.style.color='#cfd5db'; hdr.style.margin='4px 0 8px'; sec.appendChild(hdr); sec.appendChild(scalars); container.appendChild(sec); }
+
+    // Nested object groups we know: statusChip, cta, quote
+    [['statusChip','Status Chip'],['cta','Call To Action'],['quote','Quote']].forEach(([key,label])=>{
+      if (cfg[key] && typeof cfg[key]==='object'){
+        const sec=document.createElement('div'); const hdr=document.createElement('h3'); hdr.textContent=label; hdr.style.fontSize='14px'; hdr.style.color='#cfd5db'; hdr.style.margin='8px 0'; sec.appendChild(hdr);
+        const grid=document.createElement('div'); grid.style.display='grid'; grid.style.gridTemplateColumns='repeat(auto-fit,minmax(160px,1fr))'; grid.style.gap='8px';
+        Object.keys(cfg[key]).forEach(sub=>{
+          const p = `${key}.${sub}`; const t=inferType(sub, cfg[key][sub]);
+          const ctl = buildPrimitiveInput(p, sub, t, cfg[key][sub], (nv)=>{ if (t==='percent') nv=clamp(nv); deepSet(currentConfig,p,nv); syncJsonFromConfig(); schedulePreview(); });
+          grid.appendChild(ctl);
+        });
+        sec.appendChild(grid); container.appendChild(sec);
+      }
+    });
+
+    // Lists: whatsNew, risks (primitives)
+    [['whatsNew','What’s New'],['risks','Risks & Blockers']].forEach(([key,label])=>{
+      if (Array.isArray(cfg[key])){
+        const wrap = buildListPrimitive(key,label, cfg[key], (arr)=>{ deepSet(currentConfig,key,arr); syncJsonFromConfig(); schedulePreview(); });
+        const sec=document.createElement('div'); const hdr=document.createElement('h3'); hdr.textContent=label; hdr.style.fontSize='14px'; hdr.style.color='#cfd5db'; hdr.style.margin='8px 0'; sec.appendChild(hdr); sec.appendChild(wrap); container.appendChild(sec);
+      }
+    });
+
+    // workstreams (objects)
+    if (Array.isArray(cfg.workstreams)){
+      const wrap = buildListObjects('workstreams','Workstreams', cfg.workstreams, [
+        { path:'label', label:'Label', type:'text' },
+        { path:'percent', label:'Percent', type:'percent' }
+      ], (arr)=>{ deepSet(currentConfig,'workstreams',arr); syncJsonFromConfig(); schedulePreview(); });
+      const sec=document.createElement('div'); const hdr=document.createElement('h3'); hdr.textContent='Workstreams'; hdr.style.fontSize='14px'; hdr.style.color='#cfd5db'; hdr.style.margin='8px 0'; sec.appendChild(hdr); sec.appendChild(wrap); container.appendChild(sec);
+    }
+
+    // milestones
+    if (Array.isArray(cfg.milestones)){
+      const wrap = buildListObjects('milestones','Milestones', cfg.milestones, [
+        { path:'label', label:'Label', type:'text' },
+        { path:'date', label:'Date', type:'text' },
+        { path:'current', label:'Current', type:'checkbox' }
+      ], (arr)=>{ deepSet(currentConfig,'milestones',arr); syncJsonFromConfig(); schedulePreview(); });
+      const sec=document.createElement('div'); const hdr=document.createElement('h3'); hdr.textContent='Milestones'; hdr.style.fontSize='14px'; hdr.style.color='#cfd5db'; hdr.style.margin='8px 0'; sec.appendChild(hdr); sec.appendChild(wrap); container.appendChild(sec);
+    }
+
+    // contributors
+    if (Array.isArray(cfg.contributors)){
+      const wrap = buildListObjects('contributors','Contributors', cfg.contributors, [
+        { path:'name', label:'Name', type:'text' },
+        { path:'imageUrl', label:'Image', type:'image' }
+      ], (arr)=>{ deepSet(currentConfig,'contributors',arr); syncJsonFromConfig(); schedulePreview(); });
+      const sec=document.createElement('div'); const hdr=document.createElement('h3'); hdr.textContent='Contributors'; hdr.style.fontSize='14px'; hdr.style.color='#cfd5db'; hdr.style.margin='8px 0'; sec.appendChild(hdr); sec.appendChild(wrap); container.appendChild(sec);
+    }
+
+    // footer fields if present
+    ['footerText','footerHtml'].forEach(key=>{
+      if (key in cfg){ const t = key==='footerHtml' ? 'textarea' : 'textarea'; const ctl = buildPrimitiveInput(key, key, t, cfg[key], (nv)=>{ deepSet(currentConfig,key,nv); syncJsonFromConfig(); schedulePreview(); }); container.appendChild(ctl); }
+    });
+  }
+
   // --- UI logic ---
   const listEl = document.getElementById('template-list');
   const toStep2Btn = document.getElementById('to-step-2');
@@ -1146,9 +1347,25 @@
   const downloadHtmlBtn = document.getElementById('download-html');
   const downloadEmlBtn = document.getElementById('download-eml');
   const openOutlookWebBtn = document.getElementById('open-outlook-web');
+  const projTitle = document.getElementById('project-title');
+  const projNewBtn = document.getElementById('proj-new');
+  const projSaveBtn = document.getElementById('proj-save');
+  const projSaveAsBtn = document.getElementById('proj-save-as');
+  const projSelect = document.getElementById('proj-select');
+  const projDupBtn = document.getElementById('proj-dup');
+  const projDelBtn = document.getElementById('proj-del');
+  const projExportBtn = document.getElementById('proj-export');
+  const projImportBtn = document.getElementById('proj-import');
+  const projImportFile = document.getElementById('proj-import-file');
+  const formPane = document.getElementById('form-pane');
+  const jsonPane = document.getElementById('json-pane');
+  const modeFormBtn = document.getElementById('mode-form');
+  const modeJsonBtn = document.getElementById('mode-json');
+  const syncFromJsonBtn = document.getElementById('sync-from-json');
 
   let selectedTemplate = null;
   let lastHtml = '';
+  let currentConfig = {};
 
   function selectTemplate(t) {
     selectedTemplate = t;
@@ -1219,22 +1436,45 @@
     window.open(url, '_blank');
   }
 
+  // Project UI helpers
+  function refreshProjSelect(){
+    const items = listProjects();
+    const cur = projSelect.value;
+    projSelect.innerHTML = '<option value="">Open project…</option>' + items.map(p=>`<option value="${p.id}">${p.name} — ${p.templateId}</option>`).join('');
+    if (cur) projSelect.value = cur;
+  }
+  function loadProject(id){ const p=projectIndex[id]; if(!p) return; currentProjectId = id; const tpl = TEMPLATES.find(x=>x.id===p.templateId) || selectedTemplate; if (tpl.id !== selectedTemplate.id){ selectTemplate(tpl); }
+    currentConfig = JSON.parse(JSON.stringify(p.config)); projTitle.value = p.name || ''; editor.value = JSON.stringify(currentConfig, null, 2); renderFormFromConfig(currentConfig, tpl.id); schedulePreview(); }
+  function saveCurrentProject(asNew=false){ const name = (projTitle.value||'Untitled').trim(); const data = { id: currentProjectId && !asNew ? currentProjectId : genId(), name, templateId: selectedTemplate.id, config: currentConfig, updatedAt: Date.now()}; projectIndex[data.id]=data; currentProjectId = data.id; saveProjects(); refreshProjSelect(); }
+
+  // Sync helpers
+  function syncJsonFromConfig(){ editor.value = JSON.stringify(currentConfig, null, 2); }
+  function syncConfigFromJson(){ try{ const obj = parseConfig(); currentConfig = obj; projTitle.value = currentConfig.projectName || projTitle.value; renderFormFromConfig(currentConfig, selectedTemplate.id); schedulePreview(); }catch{} }
+  let previewTimer = null; function schedulePreview(){ clearTimeout(previewTimer); previewTimer = setTimeout(()=>{ const html = selectedTemplate.buildHtml(currentConfig); setPreview(html); }, 150); }
+
   // Wire up buttons
   toStep2Btn.addEventListener('click', () => {
+    // Init projects
+    loadProjects(); refreshProjSelect();
     editor.value = selectedTemplate.sampleConfig;
+    try { currentConfig = JSON.parse(editor.value); } catch { currentConfig = {}; }
+    projTitle.value = currentConfig.projectName || '';
+    renderFormFromConfig(currentConfig, selectedTemplate.id);
     // Default subject from projectName
     try {
       const cfg = JSON.parse(editor.value);
       subjectInput.value = `Weekly Update — ${cfg.projectName || 'Project'}`;
     } catch {}
+    // Default to Form mode
+    formPane.style.display=''; jsonPane.style.display='none'; modeFormBtn.className='btn'; modeJsonBtn.className='btn secondary';
+    schedulePreview();
     showStep(2);
   });
 
   backTo1Btn.addEventListener('click', () => showStep(1));
 
   toStep3Btn.addEventListener('click', () => {
-    const cfg = parseConfig();
-    const html = selectedTemplate.buildHtml(cfg);
+    const html = selectedTemplate.buildHtml(currentConfig);
     setPreview(html);
     showStep(3);
   });
@@ -1252,8 +1492,7 @@
   });
 
   downloadHtmlBtn.addEventListener('click', () => {
-    const cfg = parseConfig();
-    const name = (cfg.projectName || 'project').toLowerCase().replace(/[^a-z0-9]+/g, '-');
+    const name = (currentConfig.projectName || 'project').toLowerCase().replace(/[^a-z0-9]+/g, '-');
     download(`${name}-update.html`, 'text/html;charset=utf-8', lastHtml);
   });
 
@@ -1270,6 +1509,24 @@
     const subject = subjectInput.value.trim();
     openOutlookWeb(to, subject, lastHtml);
   });
+
+  // Mode switching
+  modeFormBtn.addEventListener('click', ()=>{ formPane.style.display=''; jsonPane.style.display='none'; modeFormBtn.className='btn'; modeJsonBtn.className='btn secondary'; });
+  modeJsonBtn.addEventListener('click', ()=>{ formPane.style.display='none'; jsonPane.style.display=''; modeFormBtn.className='btn secondary'; modeJsonBtn.className='btn'; });
+  syncFromJsonBtn.addEventListener('click', ()=>{ syncConfigFromJson(); });
+
+  // Project wire-up
+  projNewBtn.addEventListener('click', ()=>{ if (confirm('Start a new project? Unsaved changes will be lost.')) { currentProjectId=null; currentConfig = JSON.parse(selectedTemplate.sampleConfig); projTitle.value = currentConfig.projectName || ''; syncJsonFromConfig(); renderFormFromConfig(currentConfig, selectedTemplate.id); schedulePreview(); }});
+  projSaveBtn.addEventListener('click', ()=>{ saveCurrentProject(false); });
+  projSaveAsBtn.addEventListener('click', ()=>{ saveCurrentProject(true); });
+  projDupBtn.addEventListener('click', ()=>{ saveCurrentProject(true); });
+  projDelBtn.addEventListener('click', ()=>{ if (!currentProjectId) return; if (confirm('Delete this project?')) { delete projectIndex[currentProjectId]; currentProjectId=null; saveProjects(); refreshProjSelect(); }});
+  projSelect.addEventListener('change', ()=>{ const id = projSelect.value; if (id) loadProject(id); });
+  projExportBtn.addEventListener('click', ()=>{ const payload = { id: currentProjectId || genId(), name: projTitle.value || 'Untitled', templateId: selectedTemplate.id, config: currentConfig }; download(`${(payload.name||'project').toLowerCase().replace(/[^a-z0-9]+/g,'-')}.json`, 'application/json', JSON.stringify(payload, null, 2)); });
+  projImportBtn.addEventListener('click', ()=> projImportFile.click());
+  projImportFile.addEventListener('change', ()=>{ const f = projImportFile.files[0]; if (!f) return; const r = new FileReader(); r.onload = ()=>{ try { const data = JSON.parse(r.result); if (data && data.templateId && data.config) { const tpl = TEMPLATES.find(x=>x.id===data.templateId) || selectedTemplate; selectTemplate(tpl); currentConfig = data.config; projTitle.value = data.name || currentConfig.projectName || ''; currentProjectId=null; syncJsonFromConfig(); renderFormFromConfig(currentConfig, tpl.id); schedulePreview(); } else { // raw config
+          currentConfig = data; projTitle.value = currentConfig.projectName || ''; currentProjectId=null; syncJsonFromConfig(); renderFormFromConfig(currentConfig, selectedTemplate.id); schedulePreview(); }
+        } catch(e){ alert('Import failed: ' + e.message); } }; r.readAsText(f); projImportFile.value = ''; });
 
   // Init
   renderTemplates();
