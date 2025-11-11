@@ -59,6 +59,241 @@
       buildHtml
     },
     {
+      id: 'brutalist-neon',
+      name: 'Brutalist Neon — Status Brief',
+      description: 'Unorthodox, high-contrast neon brutalist layout with ASCII bars and bold blocks.',
+      sampleConfig: `{
+  "projectName": "Project Hermes",
+  "projectIconUrl": "https://example.com/hermes-icon.png",
+  "updateDate": "2025-11-10",
+  "preheader": "Status brief — neon brutalist.",
+  "updateSummary": "Blunt, bold, and bright: key signals and next actions.",
+  "progressPercent": 64,
+  "sprintNumber": "9",
+  "etaDate": "Jan 20, 2026",
+
+  "whatsNew": ["Relay refactor", "Courier offline queue", "Routing heuristic v2"],
+  "risks": ["Tiles quota", "Webhook retries"],
+  "workstreams": [
+    { "label": "Relays", "percent": 80 },
+    { "label": "Courier App", "percent": 58 },
+    { "label": "Routing", "percent": 31 }
+  ],
+  "milestoneTrackPercent": 54,
+  "currentMilestoneIndex": 2,
+  "milestones": [
+    { "label": "Spec", "date": "Oct 10" },
+    { "label": "Proto", "date": "Nov 05" },
+    { "label": "Beta", "date": "Dec 01", "current": true },
+    { "label": "RC", "date": "Jan 05" },
+    { "label": "GA", "date": "Jan 20" }
+  ],
+  "contributors": [
+    { "name": "Daphne", "imageUrl": "https://example.com/daphne.jpg" },
+    { "name": "Orion", "imageUrl": "https://example.com/orion.jpg" }
+  ],
+  "cta": { "label": "OPEN CONSOLE", "url": "https://example.com/hermes" },
+  "footerText": "Brief for {{PROJECT_NAME}} — unsubscribe or manage prefs in your profile.",
+  "accentColor": "#FF2D9B",
+  "accentAltColor": "#00FFD1"
+}`,
+      buildHtml: function buildHtmlBrutalistNeon(cfg) {
+        const esc = (s)=>String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+        const clamp=(n)=>Math.max(0,Math.min(100,+n||0));
+        const asciiBar=(pct,len=20)=>{ pct=clamp(pct); const filled=Math.round((pct/100)*len); const empty=len-filled; return '['+'█'.repeat(filled)+'░'.repeat(Math.max(0,empty))+`] ${pct}%`; };
+
+        const projectName = String(cfg.projectName || 'PROJECT');
+        const projectIconUrl = String(cfg.projectIconUrl || '');
+        const updateDate = String(cfg.updateDate || new Date().toISOString().slice(0,10));
+        const preheader = String(cfg.preheader || `Status brief.`);
+        const updateSummary = String(cfg.updateSummary || '');
+        const progressPercent = clamp(cfg.progressPercent);
+        const sprintNumber = String(cfg.sprintNumber || '');
+        const etaDate = String(cfg.etaDate || '');
+        const whatsNew = cfg.whatsNew || [];
+        const risks = cfg.risks || [];
+        const workstreams = cfg.workstreams || [];
+        const milestones = cfg.milestones || [];
+        const milestoneTrackPercent = clamp(cfg.milestoneTrackPercent);
+        const currentMilestoneIndex = (typeof cfg.currentMilestoneIndex==='number')?cfg.currentMilestoneIndex:undefined;
+        const contributors = cfg.contributors || [];
+        const cta = cfg.cta || {}; const ctaLabel = cta.label || 'OPEN'; const ctaUrl = cta.url || '#';
+        const footerHtmlTpl = cfg.footerHtml; const footerTextTpl = cfg.footerText;
+        const ACC = String(cfg.accentColor || '#FF2D9B');
+        const ACC2 = String(cfg.accentAltColor || '#00FFD1');
+
+        function list(items, color){ if(!items||!items.length) return '<li>—</li>'; return items.map(x=>`<li style="color:${color};">${esc(x)}</li>`).join(''); }
+        function wsTable(ws){ if(!ws||!ws.length) return ''; return ws.map(w=>{ const p=clamp(w.percent); return `
+          <tr>
+            <td style="padding:6px 0; font-family:Consolas, 'Courier New', monospace; font-size:12px; color:#111;">${esc(w.label||'')}</td>
+            <td align="right" style="padding:6px 0; font-family:Consolas, 'Courier New', monospace; font-size:12px; color:#111; white-space:nowrap;">${p}%</td>
+          </tr>
+          <tr><td colspan="2" style="padding:0 0 8px 0; font-family:Consolas, 'Courier New', monospace; font-size:12px; color:#111;">${esc(asciiBar(p, 24))}</td></tr>`; }).join(''); }
+        function miles(ms, idx){ if(!ms||!ms.length) return ''; const w=(100/ms.length).toFixed(2); return ms.map((m,i)=>{ const cur = !!m.current || (typeof idx==='number'&&idx===i); const dotStyle = cur? `background:${ACC};` : 'background:#111;'; return `
+          <td align="center" style="width:${w}%;">
+            <div style="height:16px;">
+              <span style="display:inline-block; width:2px; height:16px; ${dotStyle}"></span>
+            </div>
+            <div style="font-family:Consolas, 'Courier New', monospace; font-size:12px; color:#111; margin-top:6px;">${esc(m.label||'')}</div>
+            <div style="font-family:Consolas, 'Courier New', monospace; font-size:11px; color:#4B5563;">${esc(m.date||'')}</div>
+          </td>`; }).join(''); }
+        function people(ps){ if(!ps||!ps.length) return ''; return ps.map((p,i)=>{ const name=esc(p.name||''); const img=esc(p.imageUrl||''); const b=(i<ps.length-1)?'8px':'0'; return `
+          <tr>
+            <td width="40" valign="middle" style="padding:0 8px ${b} 0;"><img src="${img}" width="32" height="32" alt="${name}" style="display:block; border:2px solid #000; background:#fff;"></td>
+            <td valign="middle" style="padding:0 0 ${b} 0; font-family:Consolas, 'Courier New', monospace; font-size:13px; color:#111;">— ${name}</td>
+          </tr>`; }).join(''); }
+
+        let footerBlock;
+        if (typeof footerHtmlTpl === 'string' && footerHtmlTpl.length) {
+          footerBlock = footerHtmlTpl.replace(/\{\{PROJECT_NAME\}\}/g, esc(projectName));
+        } else if (typeof footerTextTpl === 'string' && footerTextTpl.length) {
+          const resolved = footerTextTpl.replace(/\{\{PROJECT_NAME\}\}/g, projectName);
+          footerBlock = `<div style="font-family:Consolas, 'Courier New', monospace; font-size:12px; line-height:18px; color:#111;">${esc(resolved)}</div>`;
+        } else {
+          footerBlock = `<div style="font-family:Consolas, 'Courier New', monospace; font-size:12px; line-height:18px; color:#111;">Brief for <span style="font-weight:700;">${esc(projectName)}</span>. Manage preferences in your profile.</div>`;
+        }
+
+        const safeProject = esc(projectName);
+        const safeSummary = esc(updateSummary).replace(/\n/g,'<br>');
+        const safePreheader = esc(preheader);
+        const safeIcon = esc(projectIconUrl);
+
+        const whatsNewHtml = list(whatsNew, '#111');
+        const risksHtml = list(risks, '#7F1D1D');
+        const workstreamsHtml = wsTable(workstreams);
+        const milestonesHtml = miles(milestones, currentMilestoneIndex);
+        const contributorsHtml = people(contributors);
+        const asciiOverall = asciiBar(progressPercent, 28);
+
+        return `<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  <meta name="color-scheme" content="light">
+  <meta name="supported-color-schemes" content="light">
+  <title>${safeProject} — Status Brief</title>
+  <style>
+    @media (max-width: 600px) { .container { width: 100% !important; } .p-24 { padding: 16px !important; } .stack { display: block !important; width: 100% !important; } .align-right { text-align: left !important; } }
+  </style>
+  <!--[if mso]><style type="text/css">body, table, td { font-family: Arial, sans-serif !important; }</style><![endif]-->
+  <meta name="format-detection" content="telephone=no,address=no,email=no,date=no,url=no">
+</head>
+<body style="margin:0; padding:0; background:#0F0F0F; color:#111; -webkit-text-size-adjust:100%; -ms-text-size-adjust:100%;">
+  <div style="display:none; max-height:0; overflow:hidden; opacity:0; mso-hide:all;">${safePreheader}</div>
+  <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="background:#0F0F0F;">
+    <tr>
+      <td align="center" style="padding:24px;">
+        <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="640" class="container" style="width:640px; max-width:640px; background:#FFFFFF; border:4px solid #000000;">
+          <!-- Head neon strip -->
+          <tr>
+            <td style="padding:10px 16px; background:${ACC}; color:#000; font-family:Consolas, 'Courier New', monospace; font-size:12px; letter-spacing:1px; font-weight:700; text-transform:uppercase;">STATUS BRIEF · ${esc(updateDate)}</td>
+          </tr>
+          <!-- Header -->
+          <tr>
+            <td class="p-24" style="padding:16px 16px 8px 16px; border-bottom:4px solid #000000;">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                <tr>
+                  <td width="60" valign="middle" style="width:60px;">
+                    <img src="${safeIcon}" width="56" height="56" alt="${safeProject} icon" style="display:block; border:3px solid #000; background:#fff;">
+                  </td>
+                  <td valign="middle" style="padding-left:12px;">
+                    <div style="font-family:Consolas, 'Courier New', monospace; font-size:11px; color:#111;">PROJECT</div>
+                    <div style="font-family:Impact, 'Arial Black', Arial, sans-serif; font-size:28px; line-height:30px; color:#000; text-transform:uppercase;">${safeProject}</div>
+                  </td>
+                  <td valign="middle" align="right" class="align-right">
+                    <div style="font-family:Consolas, 'Courier New', monospace; font-size:11px; color:#111;">SPRINT ${esc(sprintNumber)} · ETA ${esc(etaDate)}</div>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- Summary + Overall Progress (ASCII) -->
+          <tr>
+            <td class="p-24" style="padding:12px 16px 0 16px;">
+              <div style="font-family:Arial, sans-serif; font-size:15px; line-height:22px; color:#111;">${safeSummary}</div>
+              <div style="margin-top:12px; font-family:Consolas, 'Courier New', monospace; font-size:13px; color:#111;">${esc(asciiOverall)}</div>
+              <div style="background:#000; height:2px; margin-top:8px; line-height:2px;">&nbsp;</div>
+              <div style="background:${ACC2}; height:6px; width:${progressPercent}%; margin-top:-4px;"></div>
+            </td>
+          </tr>
+
+          <!-- Two columns: What's New / Risks -->
+          <tr>
+            <td style="padding:12px 16px 0 16px;">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                <tr>
+                  <td class="stack" width="50%" valign="top" style="padding-right:8px;">
+                    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border:3px solid #000;">
+                      <tr><td style="padding:10px; background:#000; color:#fff; font-family:Consolas, 'Courier New', monospace; font-size:12px; font-weight:700;">WHAT'S NEW</td></tr>
+                      <tr><td style="padding:12px; font-family:Arial, sans-serif; font-size:13px; color:#111;"><ul style="padding-left:18px; margin:0;">${whatsNewHtml}</ul></td></tr>
+                    </table>
+                  </td>
+                  <td class="stack" width="50%" valign="top" style="padding-left:8px;">
+                    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border:3px solid #000;">
+                      <tr><td style="padding:10px; background:#000; color:#fff; font-family:Consolas, 'Courier New', monospace; font-size:12px; font-weight:700;">HEADWINDS</td></tr>
+                      <tr><td style="padding:12px; font-family:Arial, sans-serif; font-size:13px; color:#111;"><ul style="padding-left:18px; margin:0;">${risksHtml}</ul></td></tr>
+                    </table>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- Workstreams with ASCII bars -->
+          <tr>
+            <td style="padding:12px 16px 0 16px;">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border:3px solid #000;">
+                <tr><td style="padding:10px; background:${ACC2}; color:#000; font-family:Consolas, 'Courier New', monospace; font-size:12px; font-weight:700;">WORKSTREAMS</td></tr>
+                <tr><td style="padding:8px 12px;">
+                  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">${workstreamsHtml}</table>
+                </td></tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- Route timeline -->
+          <tr>
+            <td style="padding:12px 16px 0 16px;">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border:3px solid #000;">
+                <tr><td style="padding:10px; background:${ACC}; color:#000; font-family:Consolas, 'Courier New', monospace; font-size:12px; font-weight:700;">ROUTE</td></tr>
+                <tr><td style="padding:12px;">
+                  <div style="background:#000; height:2px; line-height:2px;">&nbsp;</div>
+                  <div style="background:${ACC}; height:6px; width:${milestoneTrackPercent}%; margin-top:-4px;"></div>
+                  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top:8px;"><tr>${milestonesHtml}</tr></table>
+                </td></tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- CTA -->
+          <tr>
+            <td align="left" style="padding:16px 16px 12px 16px;">
+              <!--[if mso]><v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" href="${esc(ctaUrl)}" style="height:48px;v-text-anchor:middle;width:260px;" arcsize="0%" stroke="t" strokecolor="#000000" strokeweight="3px" fillcolor="${ACC2}"><w:anchorlock/><center style="color:#000000; font-family:Arial, sans-serif; font-size:14px; font-weight:800; letter-spacing:1px;">${esc(ctaLabel)}</center></v:roundrect><![endif]-->
+              <!--[if !mso]><!-- -->
+              <a href="${esc(ctaUrl)}" style="background:${ACC2}; color:#000; text-decoration:none; font-family:Arial, sans-serif; font-size:14px; font-weight:800; letter-spacing:1px; line-height:48px; display:inline-block; min-width:260px; text-align:center; border:3px solid #000;">${esc(ctaLabel)}</a>
+              <!--<![endif]-->
+            </td>
+          </tr>
+
+          <!-- Contributors -->
+          ${contributors && contributors.length ? `<tr><td style="padding:6px 16px 0 16px;"><div style=\"font-family:Consolas, 'Courier New', monospace; font-size:12px; line-height:16px; color:#111; margin-bottom:6px;\">CREW</div><table role=\"presentation\" width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\">${contributorsHtml}</table></td></tr>` : ''}
+
+          <!-- Footer -->
+          <tr><td style="padding:0 16px 12px 16px;"><div style="height:2px; background:#000; line-height:2px;">&nbsp;</div></td></tr>
+          <tr><td style="padding:8px 16px 16px 16px;">${footerBlock}</td></tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+  <div style="display:none; white-space:nowrap; font:15px courier; line-height:0;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</div>
+</body>
+</html>`;
+      }
+    },
+    {
       id: 'hermes-mythic-light-alt',
       name: 'Mythic Light — Hermes Alt',
       description: 'Light variant with hero, metric cards, split columns, and route timeline.',
