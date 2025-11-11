@@ -37,7 +37,7 @@
     return `<!DOCTYPE html><html><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><title>${e(name)} — Brief</title></head><body style=\"margin:0;background:#0F0F0F;color:#111\"><div style=\"display:none;max-height:0;overflow:hidden;opacity:0\">${e(pre)}</div><table role=\"presentation\" width=\"100%\" style=\"background:#0F0F0F\"><tr><td align=\"center\" style=\"padding:24px\"><table role=\"presentation\" width=\"680\" style=\"background:#FFFFFF;border:4px solid #000\"><tr><td style=\"padding:10px 16px;background:${ACC};font:700 12px Consolas,monospace;letter-spacing:1px\">STATUS BRIEF · ${e(date)}</td></tr><tr><td style=\"padding:16px;border-bottom:4px solid #000\"><table width=\"100%\"><tr><td width=\"60\"><img src=\"${e(icon)}\" width=\"56\" height=\"56\" alt=\"${e(name)} icon\" style=\"display:block;border:3px solid #000;background:#fff\"></td><td style=\"padding-left:12px\"><div style=\"font:11px Consolas,monospace;color:#111\">PROJECT</div><div style=\"font:28px Impact,'Arial Black',Arial;color:#000;text-transform:uppercase\">${e(name)}</div></td><td align=\"right\" style=\"font:11px Consolas,monospace;color:#111\">${e(date)}</td></tr></table></td></tr><tr><td style=\"padding:12px 16px 0\"><div style=\"font:15px Arial;color:#111\">${e(summary).replace(/\n/g,'<br>')}</div><div style=\"margin-top:8px;font:13px Consolas,monospace;color:#111\">${e(ascii(pct,28))}</div><div style=\"background:#000;height:2px;margin-top:6px\"></div><div style=\"background:${ACC2};height:6px;width:${pct}%;margin-top:-4px\"></div></td></tr><tr><td style=\"padding:12px 16px 0\"><table role=\"presentation\" width=\"100%\" style=\"border:3px solid #000\"><tr><td style=\"padding:10px;background:${ACC2};font:700 12px Consolas,monospace\">WORKSTREAMS</td></tr><tr><td style=\"padding:8px 12px\"><table role=\"presentation\" width=\"100%\">${wsHtml}</table></td></tr></table></td></tr><tr><td style=\"padding:12px 16px 0\"><table role=\"presentation\" width=\"100%\" style=\"border:3px solid #000\"><tr><td style=\"padding:10px;background:${ACC};font:700 12px Consolas,monospace\">ROUTE</td></tr><tr><td style=\"padding:12px\"><div style=\"background:#000;height:2px\"></div><div style=\"background:${ACC};height:6px;width:${track}%;margin-top:-4px\"></div><div style=\"margin-top:8px\">${msl}</div></td></tr></table></td></tr><tr><td style=\"padding:16px\"><a href=\"${e(ctaUrl)}\" style=\"display:inline-block;min-width:260px;text-align:center;text-decoration:none;background:${ACC2};color:#000;border:3px solid #000;font:800 14px/48px Arial;letter-spacing:1px\">${e(ctaLabel)}</a></td></tr></table></td></tr></table></body></html>`;
   }
 
-    function extractPlaceholders(html){
+  function extractPlaceholders(html){
     const map = {};
     const tokens = new Set();
     const re = /{{\s*([A-Za-z0-9_.-]+)\s*}}/g;
@@ -52,6 +52,32 @@
     for(const base in groups){ map[base] = groups[base].map(v=>v||''); }
     return map;
   }
+  function buildFromTemplateHtml(html, cfg){
+    let out = html;
+    for(const key in cfg){ if(Array.isArray(cfg[key])){
+      const arr = cfg[key];
+      for(let i=0;i<arr.length;i++){
+        const token = new RegExp('{{\\s*'+ key.replace(/[-/\\^$*+?.()|[\]{}]/g,'\\$&') + '_' + (i+1) +'\\s*}}','g');
+        out = out.replace(token, arr[i] ?? '');
+      }
+    }}
+    const re = /{{\s*([A-Za-z0-9_.-]+)\s*}}/g; let m; const seen = new Set();
+    while((m = re.exec(html))){ const name = m[1]; if(seen.has(name)) continue; seen.add(name);
+      if(!name.match(/^(.*)_([0-9]+)$/)){
+        const token = new RegExp('{{\\s*'+ name.replace(/[-/\\^$*+?.()|[\]{}]/g,'\\$&') +'\\s*}}','g');
+        out = out.replace(token, (cfg[name] ?? ''));
+      }
+    }
+    return out;
+  }
+  function createProjectFromHtml(html, name){
+    const id = uid(); const now = Date.now(); const vid = uid();
+    const cfg = extractPlaceholders(html);
+    for (const k in cfg){ if (typeof cfg[k] === 'string' && /ICON|IMAGE/i.test(k)) cfg[k] = DEFAULT_IMG; if (Array.isArray(cfg[k]) && /IMAGE|ICON/i.test(k)) cfg[k] = cfg[k].map(()=>DEFAULT_IMG); }
+    store.projects[id] = { id, name: name||'Custom Template', templateHtml: html, createdAt: now, updatedAt: now, versions:[{ id: vid, name: 'v1', config: cfg, isDraft:true, createdAt: now, updatedAt: now }] };
+    saveStore(); openProject(id, vid);
+  }
+  function buildCurrentHtml(){ const p=store.projects[currentProjectId]; if(!p) return ''; if (p.templateHtml) return buildFromTemplateHtml(p.templateHtml, currentConfig); return getTemplate().buildHtml(currentConfig); }
   function buildFromTemplateHtml(html, cfg){
     let out = html;
     // arrays
@@ -146,7 +172,7 @@ function buildHtmlMaterialDark(cfg){
   }
   $('#mode-form').addEventListener('click',e=>{e.preventDefault(); formPane.style.display=''; jsonPane.style.display='none'; $('#mode-form').className='btn'; $('#mode-json').className='btn secondary';});
   $('#mode-json').addEventListener('click',e=>{e.preventDefault(); formPane.style.display='none'; jsonPane.style.display=''; $('#mode-form').className='btn secondary'; $('#mode-json').className='btn';});
-  $('#sync-from-json').addEventListener('click',()=>{ try{ currentConfig=JSON.parse(editor.value); const p=store.projects[currentProjectId]; const v=p.versions.find(x=>x.id===currentVersionId); v.config=JSON.parse(JSON.stringify(currentConfig)); v.updatedAt=Date.now(); p.updatedAt=v.updatedAt; saveStore(); renderFormFromConfig(currentConfig, p.templateId); schedulePreview(); const plbtn=document.getElementById('proj-load-template'); const pfile=document.getElementById('proj-template-file'); if(plbtn&&pfile){ plbtn.onclick=()=>pfile.click(); pfile.onchange=()=>{ const f=pfile.files[0]; if(!f) return; const r=new FileReader(); r.onload=()=>{ p.templateHtml=r.result; currentConfig = extractPlaceholders(p.templateHtml); const v=p.versions.find(x=>x.id===currentVersionId); v.config=currentConfig; v.updatedAt=Date.now(); p.updatedAt=v.updatedAt; saveStore(); renderFormFromConfig(currentConfig, p.templateId); schedulePreview(); pfile.value=''; }; r.readAsText(f); }; } statusBar.textContent='Synced from JSON'; setTimeout(()=>statusBar.textContent='',1200);}catch(e){ alert('Invalid JSON: '+e.message);} });`,`Subject: ${subject||''}`,`MIME-Version: 1.0`,`Content-Type: text/html; charset=UTF-8`,`Content-Transfer-Encoding: 8bit`,''].join('\r\n'); return h+html; }
+  $('#sync-from-json').addEventListener('click',()=>{ try{ currentConfig=JSON.parse(editor.value); const p=store.projects[currentProjectId]; const v=p.versions.find(x=>x.id===currentVersionId); v.config=JSON.parse(JSON.stringify(currentConfig)); v.updatedAt=Date.now(); p.updatedAt=v.updatedAt; saveStore(); renderFormFromConfig(currentConfig, p.templateId); schedulePreview(); const plbtn=document.getElementById('proj-load-template'); const pfile=document.getElementById('proj-template-file'); if(plbtn&&pfile){ plbtn.onclick=()=>pfile.click(); pfile.onchange=()=>{ const f=pfile.files[0]; if(!f) return; const r=new FileReader(); r.onload=()=>{ p.templateHtml=r.result; currentConfig = extractPlaceholders(p.templateHtml); const v=p.versions.find(x=>x.id===currentVersionId); v.config=currentConfig; v.updatedAt=Date.now(); p.updatedAt=v.updatedAt; saveStore(); renderFormFromConfig(currentConfig, p.templateId); schedulePreview(); pfile.value=''; }; r.readAsText(f); }; } statusBar.textContent='Synced from JSON'; setTimeout(()=>statusBar.textContent='',1200);}catch(e){ alert('Invalid JSON: '+e.message);} });`,`
   $('#copy-html').addEventListener('click',async()=>{ try{ await navigator.clipboard.writeText(buildCurrentHtml()); statusBar.textContent='HTML copied'; setTimeout(()=>statusBar.textContent='',1200);}catch(e){ alert('Copy failed: '+e.message);} });
   $('#download-html').addEventListener('click',()=>{ const html=buildCurrentHtml(); const name=(store.projects[currentProjectId]?.name||'project').toLowerCase().replace(/[^a-z0-9]+/g,'-'); const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([html],{type:'text/html;charset=utf-8'})); a.download=`${name}-${Date.now()}.html`; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),1200); });
   $('#proj-export').addEventListener('click',()=>{ const p=store.projects[currentProjectId]; const data=JSON.stringify(p,null,2); const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([data],{type:'application/json'})); a.download=`${(p.name||'project').toLowerCase().replace(/[^a-z0-9]+/g,'-')}.json`; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),1200); });
@@ -159,6 +185,7 @@ function buildHtmlMaterialDark(cfg){
   // Init
   loadStore(); renderDashboard();
 })();
+
 
 
 
