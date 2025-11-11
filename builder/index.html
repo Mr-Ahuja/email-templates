@@ -111,6 +111,12 @@
         <div class="help muted">JSON config for the selected template:</div>
         <textarea id="config-editor" spellcheck="false"></textarea>
       </div>
+
+      <!-- Live preview pane (updates while editing) -->
+      <div id="live-preview-pane" class="panel" style="margin-top:8px;">
+        <div class="help muted">Live Preview</div>
+        <iframe id="live-preview"></iframe>
+      </div>
       <div class="controls">
         <button id="back-to-1" class="btn secondary">Back</button>
         <button id="to-step-3" class="btn">Next</button>

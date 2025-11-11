@@ -1343,6 +1343,7 @@
   const toInput = document.getElementById('to');
   const subjectInput = document.getElementById('subject');
   const previewFrame = document.getElementById('preview');
+  const livePreviewFrame = document.getElementById('live-preview');
   const copyBtn = document.getElementById('copy-html');
   const downloadHtmlBtn = document.getElementById('download-html');
   const downloadEmlBtn = document.getElementById('download-eml');
@@ -1400,12 +1401,19 @@
     document.getElementById('step-3').style.display = (n === 3 ? '' : 'none');
   }
 
+  function writeToFrame(frame, html) {
+    if (!frame) return;
+    try {
+      const doc = frame.contentDocument;
+      doc.open();
+      doc.write(html);
+      doc.close();
+    } catch {}
+  }
   function setPreview(html) {
     lastHtml = html;
-    const doc = previewFrame.contentDocument;
-    doc.open();
-    doc.write(html);
-    doc.close();
+    writeToFrame(previewFrame, html);
+    writeToFrame(livePreviewFrame, html);
   }
 
   function download(filename, mime, content) {
@@ -1450,7 +1458,7 @@
   // Sync helpers
   function syncJsonFromConfig(){ editor.value = JSON.stringify(currentConfig, null, 2); }
   function syncConfigFromJson(){ try{ const obj = parseConfig(); currentConfig = obj; projTitle.value = currentConfig.projectName || projTitle.value; renderFormFromConfig(currentConfig, selectedTemplate.id); schedulePreview(); }catch{} }
-  let previewTimer = null; function schedulePreview(){ clearTimeout(previewTimer); previewTimer = setTimeout(()=>{ const html = selectedTemplate.buildHtml(currentConfig); setPreview(html); }, 150); }
+  let previewTimer = null; function schedulePreview(){ clearTimeout(previewTimer); previewTimer = setTimeout(()=>{ const html = selectedTemplate.buildHtml(currentConfig); setPreview(html); }, 120); }
 
   // Wire up buttons
   toStep2Btn.addEventListener('click', () => {
