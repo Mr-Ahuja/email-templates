@@ -1,89 +1,47 @@
-# Template Constructor — How to Build New Email Templates
+﻿# Template Constructor — How to Build New Email Templates (Builder v2)
 
 Goal
-- Provide a repeatable recipe to construct new templates that plug into both the UI builder and (optionally) the PowerShell builder while following the existing design pattern.
+- Provide a repeatable recipe to construct new templates the builder can parse and render without code changes.
 
-Before You Start
-- Skim `project-update-material-dark.html` to understand the visual rhythm, spacing, and component structure.
-- Review `email-config.sample.json` to reuse the existing JSON keys.
-- Ensure any new keys you introduce are optional and have safe defaults.
+Steps
+1) Start with plain HTML
+- Create a single-file HTML under builder/templates/ using tables for layout and inline styles only.
+- Use ASCII labels ("What's New", "Risks & Blockers").
 
-Step 1 — Define the Template Brief
-- Name: short, descriptive (e.g., “Light — Compact Update”).
-- Tone: dark, light, or brand variant; ensure contrast targets are met.
-- Sections: list the blocks you need (Header, Summary, Chips, Progress, Cards, Milestone Track, CTA, Contributors, Footer). Remove what you don’t need.
+2) Add placeholders (tokens)
+- Scalars: {{PROJECT_NAME}}, {{PROJECT_ICON_URL}}, {{UPDATE_DATE}}, {{UPDATE_SUMMARY}}, {{PROGRESS_PERCENT}}, {{CTA_LABEL}}, {{CTA_URL}}
+- Numbered lists: {{WHATS_NEW_ITEM_1}}, {{WHATS_NEW_ITEM_2}}, …; {{RISK_ITEM_1}}, {{RISK_ITEM_2}}, …
+- Workstreams: {{TRACK_1_LABEL}}, {{TRACK_1_PERCENT}}, {{TRACK_2_LABEL}}, {{TRACK_2_PERCENT}}, …
+- Milestones: {{MILESTONE_1}}, {{MILESTONE_1_DATE}}, {{MILESTONE_2}}, {{MILESTONE_2_DATE}}, …
 
-Step 2 — Draft the HTML (Email-Safe)
-- Start from a simple table wrapper, container table (600px), and a header row.
-- Inline styles on elements; keep `<style>` small (mobile query and optional animations).
-- Include Outlook VML fallback for CTA buttons.
-- Add alt text to all images and fixed dimensions.
-- Avoid complex layout (no flex/grid for critical structure).
+3) Image handling
+- Use {{PROJECT_ICON_URL}} and any {{*_IMAGE_*}} tokens where appropriate.
+- The builder pre-fills image tokens with a default inline SVG if missing.
 
-Step 3 — Map JSON → HTML
-- Use the baseline schema. For lists:
-  - `whatsNew[]`, `risks[]` → `<ul><li>…</li></ul>`
-  - `workstreams[]` → label + percentage with a progress bar (clamp 0–100).
-  - `milestones[]` → evenly spaced markers with label + date (optionally mark current with pulse).
-- Respect `prefers-reduced-motion` for any animation.
-- Provide placeholders that match keys (e.g., `{{TRACK_1_LABEL}}`) if you deliver a static HTML variant.
+4) Sections to include (recommended)
+- Header (project icon, "Project Update" or style equivalent, project name, date)
+- Summary paragraph
+- Progress bar with {{PROGRESS_PERCENT}}
+- What's New (3 items)
+- Risks & Blockers (2 items)
+- Workstream Progress (3 tracks with percent)
+- Next Milestones (3 items with dates)
+- CTA button ({{CTA_LABEL}}, {{CTA_URL}})
+- Footer (optional scalar text token)
 
-Step 4 — Add to the UI Builder
-- Open `builder/builder.js` and append to the `TEMPLATES` array:
-  - `id`, `name`, `description`.
-  - `sampleConfig`: copy `email-config.sample.json`, prune/extend keys, keep valid JSON.
-  - `buildHtml(cfg)`: return a full HTML string using escape and clamp helpers like the material template does.
-- Verify: load `builder/index.html`, select the new template, paste/edit sample JSON, check preview.
+5) Register in manifest (HTTP auto-load)
+- Add an entry to builder/templates/manifest.json:
+  { "id": "unique-id", "name": "Display Name", "file": "your-file.html", "description": "Short summary" }
+- Serving over HTTP (local server or GitHub Pages) enables the builder to list templates automatically.
+- For file:// usage, load templates manually via "Load HTML".
 
-Step 5 — (Optional) Extend PowerShell Builder
-- Add a `-Template` or `-TemplateId` parameter to `build-email.ps1`.
-- Split existing logic into `Build-MaterialDarkHtml($cfg)` and add `Build-YourTemplateHtml($cfg)`.
-- Route via a `switch ($Template)` to return the right HTML.
+6) Test in the builder
+- Open builder/index.html
+- Load your template (or select it from the dashboard if served over HTTP)
+- Fill the form; preview updates live; Download HTML for paste-ready email.
 
-Step 6 — Validate and Ship
-- Preview in the UI builder; use “Download EML” and open in Outlook desktop.
-- Use “Open in Outlook Web” to confirm compose handoff.
-- Manually inspect on mobile (narrow preview frame) for wrapping and spacing.
-
-Do / Don’t
-- Do: table layout, inline styles, VML for CTA, alt text, clamped percentages, graceful animation.
-- Don’t: rely on external fonts, JS in email, forms, background images for essential content, absolute positioning.
-
-Snippets
-
-JS registry skeleton:
-```
-TEMPLATES.push({
-  id: 'your-id',
-  name: 'Your Template Name',
-  description: 'Short summary.',
-  sampleConfig: `{
-    "projectName": "Your Project",
-    "updateSummary": "…",
-    "workstreams": [ { "label": "Track A", "percent": 50 } ],
-    "milestones": [ { "label": "M1", "date": "Oct 1" } ],
-    "cta": { "label": "Open", "url": "https://example.com" }
-  }`,
-  buildHtml(cfg) {
-    // Return full HTML constructed from cfg
-    return `<!DOCTYPE html><html>…</html>`;
-  }
-});
-```
-
-PowerShell routing idea:
-```
-param([string]$Template = 'material-dark')
-
-switch ($Template) {
-  'material-dark' { $html = Build-MaterialDarkHtml $cfg }
-  'light-compact' { $html = Build-LightCompactHtml $cfg }
-  default { throw "Unknown template: $Template" }
-}
-```
-
-Safety Notes
-- Always escape user-provided strings when composing HTML.
-- Percentages must be integers 0–100.
-- Keep images referenced by HTTPS URLs or `cid:` attachments; avoid data URIs unless your sender supports them.
+Notes
+- Keep markup minimal and email-safe; avoid modern CSS layout.
+- Avoid curly quotes or other special punctuation to prevent encoding issues.
+- If you need more list items than the template provides, add more numbered tokens.
 
