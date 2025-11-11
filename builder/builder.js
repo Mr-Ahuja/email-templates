@@ -57,6 +57,289 @@
   "cta": { "label": "View Project Dashboard", "url": "https://example.com/app/projects/nebula" }
 }`,
       buildHtml
+    },
+    {
+      id: 'mythic-light-hermes',
+      name: 'Mythic Light — Hermes Update',
+      description: 'Light theme with subtle Greek myth aesthetics (Hermes).',
+      sampleConfig: `{
+  "projectName": "Project Hermes",
+  "projectIconUrl": "https://example.com/hermes-icon.png",
+  "updateDate": "2025-11-10",
+  "preheader": "Hermes dispatch — weekly status and next steps.",
+  "updateSummary": "Swift progress on the messaging relays and route optimization. QA started on the courier tracking module.",
+  "progressPercent": 72,
+  "sprintNumber": "9",
+  "etaDate": "Jan 20, 2026",
+
+  "statusLabel": "On Track",
+  "statusChip": { "textColor": "#075985", "bgColor": "#E0F2FE", "borderColor": "#7DD3FC" },
+
+  "whatsNew": [
+    "Relay pipeline refactored for lower latency",
+    "Courier mobile app gains offline queue",
+    "Routing heuristic adds wind/current factors"
+  ],
+  "risks": [
+    "3P map tiles quota nearing limit",
+    "Legacy webhook retries can cascade on outage"
+  ],
+
+  "workstreams": [
+    { "label": "Relays", "percent": 80 },
+    { "label": "Courier App", "percent": 65 },
+    { "label": "Routing Heuristics", "percent": 45 }
+  ],
+
+  "milestoneTrackPercent": 55,
+  "currentMilestoneIndex": 1,
+  "milestones": [
+    { "label": "Specs", "date": "Oct 12" },
+    { "label": "Prototype", "date": "Nov 08", "current": true },
+    { "label": "Beta", "date": "Dec 05" },
+    { "label": "RC", "date": "Jan 10" },
+    { "label": "GA", "date": "Jan 20" }
+  ],
+
+  "contributors": [
+    { "name": "Daphne", "imageUrl": "https://example.com/daphne.jpg" },
+    { "name": "Orion", "imageUrl": "https://example.com/orion.jpg" }
+  ],
+
+  "cta": { "label": "Open Dispatch Console", "url": "https://example.com/hermes" },
+  "footerText": "This Hermes dispatch concerns {{PROJECT_NAME}}. Manage your preferences in your profile."
+}`,
+      buildHtml: function buildHtmlMythicLight(cfg) {
+        const projectName = String(cfg.projectName || 'Project Hermes');
+        const projectIconUrl = String(cfg.projectIconUrl || '');
+        const updateDate = String(cfg.updateDate || new Date().toISOString().slice(0,10));
+        const preheader = String(cfg.preheader || `Hermes dispatch — status and next steps.`);
+        const updateSummary = String(cfg.updateSummary || '');
+        const progressPercent = Math.max(0, Math.min(100, +cfg.progressPercent || 0));
+        const sprintNumber = String(cfg.sprintNumber || '');
+        const etaDate = String(cfg.etaDate || '');
+        const statusLabel = String(cfg.statusLabel || 'On Track');
+        const statusChip = cfg.statusChip || {};
+        const chipText = statusChip.textColor || '#075985';
+        const chipBg = statusChip.bgColor || '#E0F2FE';
+        const chipBorder = statusChip.borderColor || '#7DD3FC';
+        const whatsNew = cfg.whatsNew || [];
+        const risks = cfg.risks || [];
+        const workstreams = cfg.workstreams || [];
+        const milestones = cfg.milestones || [];
+        const milestoneTrackPercent = Math.max(0, Math.min(100, +cfg.milestoneTrackPercent || 0));
+        const currentMilestoneIndex = (typeof cfg.currentMilestoneIndex === 'number') ? cfg.currentMilestoneIndex : undefined;
+        const contributors = cfg.contributors || [];
+        const cta = cfg.cta || {}; const ctaLabel = cta.label || 'Open Console'; const ctaUrl = cta.url || '#';
+        const footerHtmlTpl = cfg.footerHtml; const footerTextTpl = cfg.footerText;
+
+        const escape = (s) => String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+        const clamp = (n) => Math.max(0, Math.min(100, +n || 0));
+
+        function list(items){ return (!items||!items.length) ? '<li>—</li>' : items.map(x=>`<li>${escape(x)}</li>`).join(''); }
+        function work(ws){ if(!ws||!ws.length) return ''; return ws.map(w=>{const p=clamp(w.percent);return `
+                    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:0 0 12px 0;">
+                      <tr>
+                        <td valign="middle" style="font-family:Segoe UI,Roboto,Arial,sans-serif; font-size:13px; color:#374151;">${escape(w.label||'')}</td>
+                        <td align="right" valign="middle" style="font-family:Segoe UI,Roboto,Arial,sans-serif; font-size:12px; color:#6B7280; white-space:nowrap;">${p}%</td>
+                      </tr>
+                      <tr>
+                        <td colspan="2" style="padding-top:6px;">
+                          <div style="background:#E5E7EB; border-radius:9999px; overflow:hidden; height:8px;">
+                            <div style="background:#2D7FF9; width:${p}%; height:8px;"></div>
+                          </div>
+                        </td>
+                      </tr>
+                    </table>`;}).join(''); }
+        function miles(ms, idx){ if(!ms||!ms.length) return ''; const w=(100/ms.length).toFixed(2); return ms.map((m,i)=>{ const cur = !!m.current || (typeof idx==='number' && idx===i); const dotStyle = cur? 'background:#2D7FF9; border:1px solid #1D4ED8;' : 'background:#F3F4F6; border:1px solid #D1D5DB;'; return `
+                        <td align="center" style="width:${w}%;">
+                          <div style="height:10px;">
+                            <span style="display:inline-block; width:10px; height:10px; border-radius:9999px; ${dotStyle}"></span>
+                          </div>
+                          <div style="font-family:Segoe UI,Roboto,Arial,sans-serif; font-size:12px; color:#374151; margin-top:6px;">${escape(m.label||'')}</div>
+                          <div style="font-family:Segoe UI,Roboto,Arial,sans-serif; font-size:11px; color:#6B7280;">${escape(m.date||'')}</div>
+                        </td>`; }).join(''); }
+        function people(ps){ if(!ps||!ps.length) return ''; return ps.map((p,i)=>{const name=escape(p.name||''); const img=escape(p.imageUrl||''); const b=(i<ps.length-1)?'8px':'0'; return `
+                <tr>
+                  <td width="40" valign="middle" style="padding:0 8px ${b} 0;">
+                    <img src="${img}" width="32" height="32" alt="${name}" style="display:block; border-radius:9999px; background:#F3F4F6;">
+                  </td>
+                  <td valign="middle" style="padding:0 0 ${b} 0;">
+                    <div style="font-family:Segoe UI,Roboto,Arial,sans-serif; font-size:13px; line-height:18px; color:#374151;">${name}</div>
+                  </td>
+                </tr>`;}).join(''); }
+
+        const safeProject = escape(projectName);
+        const safeSummary = escape(updateSummary).replace(/\n/g,'<br>');
+        const safePreheader = escape(preheader);
+        const safeIcon = escape(projectIconUrl);
+        const safeSprint = escape(sprintNumber);
+        const safeEta = escape(etaDate);
+        const safeStatusLabel = escape(statusLabel);
+
+        let footerBlock;
+        if (typeof footerHtmlTpl === 'string' && footerHtmlTpl.length) {
+          footerBlock = footerHtmlTpl.replace(/\{\{PROJECT_NAME\}\}/g, safeProject);
+        } else if (typeof footerTextTpl === 'string' && footerTextTpl.length) {
+          const resolved = footerTextTpl.replace(/\{\{PROJECT_NAME\}\}/g, projectName);
+          footerBlock = `<div style="font-family:Segoe UI,Roboto,Arial,sans-serif; font-size:12px; line-height:18px; color:#6B7280;">${escape(resolved)}</div>`;
+        } else {
+          footerBlock = `<div style="font-family:Segoe UI,Roboto,Arial,sans-serif; font-size:12px; line-height:18px; color:#6B7280;">This Hermes dispatch concerns <span style="color:#111827; font-weight:600;">${safeProject}</span>. Manage your preferences in your profile.</div>`;
+        }
+
+        const whatsNewHtml = list(whatsNew);
+        const risksHtml = list(risks);
+        const workstreamsHtml = work(workstreams);
+        const milestonesHtml = miles(milestones, currentMilestoneIndex);
+        const contributorsHtml = people(contributors);
+
+        return `<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  <meta name="color-scheme" content="light">
+  <meta name="supported-color-schemes" content="light">
+  <title>${safeProject} — Status Dispatch</title>
+  <style>
+    @media (max-width: 600px) { .container { width: 100% !important; } .p-24 { padding: 16px !important; } .stack { display: block !important; width: 100% !important; } .align-right { text-align: left !important; } }
+  </style>
+  <!--[if mso]><style type="text/css">body, table, td { font-family: Arial, sans-serif !important; }</style><![endif]-->
+  <meta name="format-detection" content="telephone=no,address=no,email=no,date=no,url=no">
+</head>
+<body style="margin:0; padding:0; background:#F5F7FA; color:#111827; -webkit-text-size-adjust:100%; -ms-text-size-adjust:100%;">
+  <div style="display:none; max-height:0; overflow:hidden; opacity:0; mso-hide:all;">${safePreheader}</div>
+  <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="background:#F5F7FA;">
+    <tr>
+      <td align="center" style="padding:24px;">
+        <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="600" class="container" style="width:600px; max-width:600px; background:#FFFFFF; border:1px solid #E5E7EB; border-radius:16px; box-shadow:0 1px 3px rgba(0,0,0,0.06);">
+          <tr>
+            <td style="padding:0; border-top-left-radius:16px; border-top-right-radius:16px;">
+              <!-- Ornament: subtle Greek-inspired divider -->
+              <div style="text-align:center; padding:8px 0; color:#1D4ED8; font-size:12px; letter-spacing:4px;">· · ·  H  E  R  M  E  S  · · ·</div>
+            </td>
+          </tr>
+          <tr>
+            <td class="p-24" style="padding:16px 24px 12px 24px;">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                <tr>
+                  <td width="52" valign="middle" style="width:52px;">
+                    <img src="${safeIcon}" width="48" height="48" alt="${safeProject} icon" style="display:block; border-radius:10px; outline:none; border:1px solid #E5E7EB; background:#FAFAFA;">
+                  </td>
+                  <td valign="middle" style="padding-left:12px;">
+                    <div style="font-family:Segoe UI,Roboto,Arial,sans-serif; font-size:12px; line-height:16px; color:#6B7280; letter-spacing:.3px;">Status Dispatch</div>
+                    <div style="font-family:Segoe UI,Roboto,Arial,sans-serif; font-size:24px; line-height:28px; font-weight:700; color:#111827;">${safeProject}</div>
+                  </td>
+                  <td valign="middle" align="right" class="align-right">
+                    <div style="font-family:Segoe UI,Roboto,Arial,sans-serif; font-size:12px; line-height:16px; color:#6B7280;">${escape(updateDate)}</div>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          <tr><td style="padding:0 24px;"><div style="height:1px; background:#E5E7EB; line-height:1px;">&nbsp;</div></td></tr>
+          <tr>
+            <td class="p-24" style="padding:16px 24px 0 24px;">
+              <div style="font-family:Segoe UI,Roboto,Arial,sans-serif; font-size:14px; line-height:20px; color:#1F2937;">${safeSummary}</div>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:16px 24px 0 24px;">
+              <div style="font-family:Segoe UI,Roboto,Arial,sans-serif; font-size:12px; line-height:18px; color:#6B7280;">Overall Progress: <span style="color:#111827; font-weight:600;">${progressPercent}%</span></div>
+              <div style="background:#E5E7EB; border-radius:9999px; overflow:hidden; height:10px; margin-top:8px;">
+                <div style="background:#2D7FF9; width:${progressPercent}%; height:10px;"></div>
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:12px 24px 0 24px;">
+              <span style="display:inline-block; font-family:Segoe UI,Roboto,Arial,sans-serif; font-size:11px; color:${chipText}; border:1px solid ${chipBorder}; background:${chipBg}; padding:4px 8px; border-radius:9999px; margin-right:6px;">${safeStatusLabel}</span>
+              <span style="display:inline-block; font-family:Segoe UI,Roboto,Arial,sans-serif; font-size:11px; color:#374151; border:1px solid #E5E7EB; background:#F9FAFB; padding:4px 8px; border-radius:9999px; margin-right:6px;">Sprint ${safeSprint}</span>
+              <span style="display:inline-block; font-family:Segoe UI,Roboto,Arial,sans-serif; font-size:11px; color:#92400E; border:1px solid #FCD34D; background:#FEF3C7; padding:4px 8px; border-radius:9999px;">ETA: ${safeEta}</span>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:16px 24px 0 24px;">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#FFFFFF; border:1px solid #E5E7EB; border-radius:12px;">
+                <tr>
+                  <td style="padding:16px;">
+                    <div style="font-family:Segoe UI,Roboto,Arial,sans-serif; font-size:14px; line-height:20px; font-weight:600; color:#111827; margin-bottom:8px;">Hermes — What’s New</div>
+                    <ul style="padding-left:18px; margin:0; font-family:Segoe UI,Roboto,Arial,sans-serif; font-size:13px; line-height:20px; color:#374151;">${whatsNewHtml}</ul>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:12px 24px 0 24px;">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#FFFFFF; border:1px solid #E5E7EB; border-radius:12px;">
+                <tr>
+                  <td style="padding:16px;">
+                    <div style="font-family:Segoe UI,Roboto,Arial,sans-serif; font-size:14px; line-height:20px; font-weight:600; color:#111827; margin-bottom:8px;">Workstream Progress</div>
+                    ${workstreamsHtml}
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:12px 24px 0 24px;">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#FFFFFF; border:1px solid #E5E7EB; border-radius:12px;">
+                <tr>
+                  <td style="padding:16px;">
+                    <div style="font-family:Segoe UI,Roboto,Arial,sans-serif; font-size:14px; line-height:20px; font-weight:600; color:#111827; margin-bottom:8px;">Milestone Track</div>
+                    <div style="background:#E5E7EB; border-radius:9999px; overflow:hidden; height:8px;">
+                      <div style="background:#2D7FF9; width:${milestoneTrackPercent}%; height:8px;"></div>
+                    </div>
+                    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top:8px;">
+                      <tr>${milestonesHtml}</tr>
+                    </table>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:12px 24px 0 24px;">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#FFFFFF; border:1px solid #E5E7EB; border-radius:12px;">
+                <tr>
+                  <td style="padding:16px;">
+                    <div style="font-family:Segoe UI,Roboto,Arial,sans-serif; font-size:14px; line-height:20px; font-weight:600; color:#111827; margin-bottom:8px;">Risks & Blockers</div>
+                    <ul style="padding-left:18px; margin:0; font-family:Segoe UI,Roboto,Arial,sans-serif; font-size:13px; line-height:20px; color:#7F1D1D;">${risksHtml}</ul>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          <tr>
+            <td align="left" style="padding:20px 24px 24px 24px;">
+              <!--[if mso]><v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" href="${escape(ctaUrl)}" style="height:44px;v-text-anchor:middle;width:240px;" arcsize="12%" stroke="f" fillcolor="#2D7FF9"><w:anchorlock/><center style="color:#ffffff; font-family:Segoe UI, Arial, sans-serif; font-size:14px; font-weight:700;">${escape(ctaLabel)}</center></v:roundrect><![endif]-->
+              <!--[if !mso]><!-- -->
+              <a href="${escape(ctaUrl)}" style="background:#2D7FF9; color:#ffffff; text-decoration:none; font-family:Segoe UI,Roboto,Arial,sans-serif; font-size:14px; font-weight:700; line-height:44px; display:inline-block; min-width:240px; text-align:center; border-radius:6px;">${escape(ctaLabel)}</a>
+              <!--<![endif]-->
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:12px 24px 0 24px;">
+              <div style="font-family:Segoe UI,Roboto,Arial,sans-serif; font-size:12px; line-height:16px; color:#6B7280; margin-bottom:8px;">Contributors</div>
+              <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
+                ${contributorsHtml}
+              </table>
+            </td>
+          </tr>
+          <tr><td style="padding:0 24px 20px 24px;"><div style="height:1px; background:#E5E7EB; line-height:1px;">&nbsp;</div></td></tr>
+          <tr>
+            <td style="padding:8px 24px 24px 24px;">${footerBlock}</td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+  <div style="display:none; white-space:nowrap; font:15px courier; line-height:0;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</div>
+</body>
+</html>`;
+      }
     }
   ];
 
