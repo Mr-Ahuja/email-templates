@@ -176,7 +176,6 @@
       window.__templateRegistry=list;
     }catch(e){ window.__templateRegistry=[]; }
   }
-  }
 
   // Wire up controls
   function bindEvents(){
