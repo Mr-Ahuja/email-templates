@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{PROJECT_NAME}} - Dispatch</title>
+</head>
+<body style="margin:0; padding:0; background:#F5F7FA; color:#111827;">
+  <table role="presentation" width="100%" style="background:#F5F7FA"><tr><td align="center" style="padding:24px;">
+    <table role="presentation" width="680" style="width:680px; max-width:680px; background:#FFFFFF; border:1px solid #E5E7EB; border-radius:16px;">
+      <tr><td style="overflow:hidden; border-top-left-radius:16px; border-top-right-radius:16px"><img src="{{BANNER_URL}}" alt="banner" width="680" style="display:block; width:100%; height:auto"></td></tr>
+      <tr><td style="padding:16px 24px 12px">
+        <table width="100%"><tr>
+          <td width="52"><img src="{{PROJECT_ICON_URL}}" width="48" height="48" alt="{{PROJECT_NAME}} icon" style="display:block; border:1px solid #E5E7EB; border-radius:10px; background:#FAFAFA"></td>
+          <td style="padding-left:12px">
+            <div style="font:12px Segoe UI,Arial; color:#6B7280">Dispatch</div>
+            <div style="font:700 24px/28px Segoe UI,Arial; color:#111827">{{PROJECT_NAME}}</div>
+          </td>
+          <td align="right" style="font:12px Segoe UI,Arial; color:#6B7280">{{UPDATE_DATE}}</td>
+        </tr></table>
+      </td></tr>
+      <tr><td style="padding:8px 24px 0"><div style="font:14px/20px Segoe UI,Arial; color:#1F2937">{{UPDATE_SUMMARY}}</div></td></tr>
+      <tr><td style="padding:12px 24px 0">
+        <table role="presentation" width="100%"><tr>
+          <td width="33%" style="padding-right:8px">
+            <table role="presentation" width="100%" style="background:#F9FAFB; border:1px solid #E5E7EB; border-radius:12px"><tr><td style="padding:12px 12px 8px; font:12px Segoe UI,Arial; color:#6B7280">{{METRIC_1_LABEL}}</td></tr><tr><td style="padding:0 12px 10px; font:700 22px/28px Segoe UI,Arial; color:#111827">{{METRIC_1_VALUE}}</td></tr><tr><td style="padding:0 12px 12px"><span style="display:inline-block; font:11px Segoe UI,Arial; color:#065F46; border:1px solid #34D399; background:#D1FAE5; padding:2px 8px; border-radius:9999px">{{METRIC_1_DELTA}}</span></td></tr></table>
+          </td>
+          <td width="33%" style="padding:0 4px">
+            <table role="presentation" width="100%" style="background:#F9FAFB; border:1px solid #E5E7EB; border-radius:12px"><tr><td style="padding:12px 12px 8px; font:12px Segoe UI,Arial; color:#6B7280">{{METRIC_2_LABEL}}</td></tr><tr><td style="padding:0 12px 10px; font:700 22px/28px Segoe UI,Arial; color:#111827">{{METRIC_2_VALUE}}</td></tr><tr><td style="padding:0 12px 12px"><span style="display:inline-block; font:11px Segoe UI,Arial; color:#B45309; border:1px solid #FCD34D; background:#FEF3C7; padding:2px 8px; border-radius:9999px">{{METRIC_2_DELTA}}</span></td></tr></table>
+          </td>
+          <td width="33%" style="padding-left:8px">
+            <table role="presentation" width="100%" style="background:#F9FAFB; border:1px solid #E5E7EB; border-radius:12px"><tr><td style="padding:12px 12px 8px; font:12px Segoe UI,Arial; color:#6B7280">{{METRIC_3_LABEL}}</td></tr><tr><td style="padding:0 12px 10px; font:700 22px/28px Segoe UI,Arial; color:#111827">{{METRIC_3_VALUE}}</td></tr><tr><td style="padding:0 12px 12px"><span style="display:inline-block; font:11px Segoe UI,Arial; color:#065F46; border:1px solid #34D399; background:#D1FAE5; padding:2px 8px; border-radius:9999px">{{METRIC_3_DELTA}}</span></td></tr></table>
+          </td>
+        </tr></table>
+      </td></tr>
+      <tr><td style="padding:12px 24px 0">
+        <table role="presentation" width="100%"><tr>
+          <td width="50%" valign="top" style="padding-right:8px">
+            <table role="presentation" width="100%" style="background:#FFFFFF; border:1px solid #E5E7EB; border-radius:12px"><tr><td style="padding:16px">
+              <div style="font:600 14px/20px Segoe UI,Arial; color:#111827; margin-bottom:8px">What's in Flight</div>
+              <ul style="padding-left:18px; margin:0; font:13px/20px Segoe UI,Arial; color:#374151">
+                <li>{{WHATS_NEW_ITEM_1}}</li>
+                <li>{{WHATS_NEW_ITEM_2}}</li>
+                <li>{{WHATS_NEW_ITEM_3}}</li>
+              </ul>
+            </td></tr></table>
+          </td>
+          <td width="50%" valign="top" style="padding-left:8px">
+            <table role="presentation" width="100%" style="background:#FFFFFF; border:1px solid #E5E7EB; border-radius:12px"><tr><td style="padding:16px">
+              <div style="font:600 14px/20px Segoe UI,Arial; color:#111827; margin-bottom:8px">Headwinds</div>
+              <ul style="padding-left:18px; margin:0; font:13px/20px Segoe UI,Arial; color:#7F1D1D">
+                <li>{{RISK_ITEM_1}}</li>
+                <li>{{RISK_ITEM_2}}</li>
+              </ul>
+            </td></tr></table>
+          </td>
+        </tr></table>
+      </td></tr>
+      <tr><td style="padding:12px 24px 0">
+        <table role="presentation" width="100%" style="background:#FFFFFF; border:1px solid #E5E7EB; border-radius:12px"><tr><td style="padding:16px">
+          <div style="font:600 14px/20px Segoe UI,Arial; color:#111827; margin-bottom:8px">Route</div>
+          <div style="height:8px; background:#E5E7EB; border-radius:9999px; overflow:hidden"><div style="width:{{MILESTONE_TRACK_PERCENT}}%; height:8px; background:#2D7FF9"></div></div>
+          <ul style="padding-left:18px; margin:10px 0 0; font:13px/20px Segoe UI,Arial; color:#374151">
+            <li>{{MILESTONE_1}} - {{MILESTONE_1_DATE}}</li>
+            <li>{{MILESTONE_2}} - {{MILESTONE_2_DATE}}</li>
+            <li>{{MILESTONE_3}} - {{MILESTONE_3_DATE}}</li>
+          </ul>
+        </td></tr></table>
+      </td></tr>
+      <tr><td style="padding:16px 24px 20px"><a href="{{CTA_URL}}" style="background:#2D7FF9; color:#fff; text-decoration:none; font:700 14px Segoe UI,Arial; line-height:44px; display:inline-block; min-width:240px; text-align:center; border-radius:6px">{{CTA_LABEL}}</a></td></tr>
+    </table>
+  </td></tr></table>
+</body>
+</html>
+

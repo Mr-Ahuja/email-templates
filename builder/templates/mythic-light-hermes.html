@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{PROJECT_NAME}} - Status Dispatch</title>
+</head>
+<body style="margin:0; padding:0; background:#F5F7FA; color:#111827;">
+  <table role="presentation" width="100%" style="background:#F5F7FA"><tr><td align="center" style="padding:24px;">
+    <table role="presentation" width="640" style="width:640px; max-width:640px; background:#FFFFFF; border:1px solid #E5E7EB; border-radius:16px;">
+      <tr><td style="text-align:center; padding:8px 0; color:#1D4ED8; font:12px Segoe UI,Arial; letter-spacing:4px">· · ·  H  E  R  M  E  S  · · ·</td></tr>
+      <tr><td style="padding:16px 24px 12px;">
+        <table width="100%"><tr>
+          <td width="52"><img src="{{PROJECT_ICON_URL}}" width="48" height="48" alt="{{PROJECT_NAME}} icon" style="display:block; border:1px solid #E5E7EB; border-radius:10px; background:#FAFAFA"></td>
+          <td style="padding-left:12px">
+            <div style="font:12px Segoe UI,Arial; color:#6B7280; letter-spacing:.3px">Status Dispatch</div>
+            <div style="font:700 24px/28px Segoe UI,Arial; color:#111827">{{PROJECT_NAME}}</div>
+          </td>
+          <td align="right" style="font:12px Segoe UI,Arial; color:#6B7280">{{UPDATE_DATE}}</td>
+        </tr></table>
+      </td></tr>
+      <tr><td style="padding:0 24px"><div style="height:1px; background:#E5E7EB"></div><div style="text-align:center; padding:6px 0; color:#1D4ED8; font:12px Segoe UI,Arial; letter-spacing:4px">· · ·  H  E  R  M  E  S  · · ·</div></td></tr>
+      <tr><td style="padding:8px 24px 0"><div style="font:14px/20px Segoe UI,Arial; color:#1F2937">{{UPDATE_SUMMARY}}</div></td></tr>
+      <tr><td style="padding:16px 24px 0">
+        <div style="font:12px Segoe UI,Arial; color:#6B7280">Overall Progress: <span style="color:#111827; font-weight:600">{{PROGRESS_PERCENT}}%</span></div>
+        <div style="height:10px; background:#E5E7EB; border-radius:9999px; overflow:hidden; margin-top:8px"><div style="width:{{PROGRESS_PERCENT}}%; height:10px; background:#2D7FF9"></div></div>
+      </td></tr>
+      <tr><td style="padding:16px 24px 0">
+        <table role="presentation" width="100%" style="background:#FFFFFF; border:1px solid #E5E7EB; border-radius:12px"><tr><td style="padding:16px">
+          <div style="font:600 14px/20px Segoe UI,Arial; color:#111827; margin-bottom:8px">What's New</div>
+          <ul style="padding-left:18px; margin:0; font:13px/20px Segoe UI,Arial; color:#374151">
+            <li>{{WHATS_NEW_ITEM_1}}</li>
+            <li>{{WHATS_NEW_ITEM_2}}</li>
+            <li>{{WHATS_NEW_ITEM_3}}</li>
+          </ul>
+        </td></tr></table>
+      </td></tr>
+      <tr><td style="padding:12px 24px 0">
+        <table role="presentation" width="100%" style="background:#FFFFFF; border:1px solid #E5E7EB; border-radius:12px"><tr><td style="padding:16px">
+          <div style="font:600 14px/20px Segoe UI,Arial; color:#111827; margin-bottom:8px">Headwinds</div>
+          <ul style="padding-left:18px; margin:0; font:13px/20px Segoe UI,Arial; color:#7F1D1D">
+            <li>{{RISK_ITEM_1}}</li>
+            <li>{{RISK_ITEM_2}}</li>
+          </ul>
+        </td></tr></table>
+      </td></tr>
+      <tr><td style="padding:12px 24px 0">
+        <table role="presentation" width="100%" style="background:#FFFFFF; border:1px solid #E5E7EB; border-radius:12px"><tr><td style="padding:16px">
+          <div style="font:600 14px/20px Segoe UI,Arial; color:#111827; margin-bottom:8px">Workstream Progress</div>
+          <div style="margin:0 0 12px 0">
+            <div style="font:13px Segoe UI,Arial; color:#374151">{{TRACK_1_LABEL}}</div>
+            <div style="height:8px; background:#E5E7EB; border-radius:9999px; overflow:hidden"><div style="width:{{TRACK_1_PERCENT}}%; height:8px; background:#2D7FF9"></div></div>
+          </div>
+          <div style="margin:0 0 12px 0">
+            <div style="font:13px Segoe UI,Arial; color:#374151">{{TRACK_2_LABEL}}</div>
+            <div style="height:8px; background:#E5E7EB; border-radius:9999px; overflow:hidden"><div style="width:{{TRACK_2_PERCENT}}%; height:8px; background:#2D7FF9"></div></div>
+          </div>
+          <div style="margin:0">
+            <div style="font:13px Segoe UI,Arial; color:#374151">{{TRACK_3_LABEL}}</div>
+            <div style="height:8px; background:#E5E7EB; border-radius:9999px; overflow:hidden"><div style="width:{{TRACK_3_PERCENT}}%; height:8px; background:#2D7FF9"></div></div>
+          </div>
+        </td></tr></table>
+      </td></tr>
+      <tr><td style="padding:20px 24px 24px">
+        <a href="{{CTA_URL}}" style="background:#2D7FF9; color:#fff; text-decoration:none; font:700 14px Segoe UI,Arial; line-height:44px; display:inline-block; min-width:240px; text-align:center; border-radius:6px">{{CTA_LABEL}}</a>
+      </td></tr>
+      <tr><td style="padding:0 24px 20px"><div style="height:1px; background:#E5E7EB"></div></td></tr>
+      <tr><td style="padding:8px 24px 24px"><div style="font:12px/18px Segoe UI,Arial; color:#6B7280">Dispatch notice for <span style="font-weight:600; color:#111827">{{PROJECT_NAME}}</span>.</div></td></tr>
+    </table>
+  </td></tr></table>
+</body>
+</html>
+

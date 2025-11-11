@@ -1,0 +1,7 @@
+[
+  {"id":"material-dark","name":"Material Dark — Project Update","file":"material-dark.html","description":"Dark layout with progress, sections, and contributors."},
+  {"id":"mythic-light-hermes","name":"Mythic Light — Hermes Update","file":"mythic-light-hermes.html","description":"Light theme with Hermes accents and route track."},
+  {"id":"hermes-alt","name":"Hermes Alt — Hero + Metrics","file":"hermes-alt.html","description":"Light variant with hero banner, metric cards, split lists."},
+  {"id":"brutalist-neon","name":"Brutalist Neon — Status Brief","file":"brutalist-neon.html","description":"Neon brutalist blocks and ASCII bars."}
+]
+

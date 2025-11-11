@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{PROJECT_NAME}} - Status Brief</title>
+</head>
+<body style="margin:0; padding:0; background:#0F0F0F; color:#111;">
+  <table role="presentation" width="100%" style="background:#0F0F0F"><tr><td align="center" style="padding:24px;">
+    <table role="presentation" width="680" style="background:#FFFFFF; border:4px solid #000">
+      <tr><td style="padding:10px 16px; background:#FF2D9B; font:700 12px Consolas,monospace; letter-spacing:1px">STATUS BRIEF · {{UPDATE_DATE}}</td></tr>
+      <tr><td style="padding:16px; border-bottom:4px solid #000">
+        <table width="100%"><tr>
+          <td width="60"><img src="{{PROJECT_ICON_URL}}" width="56" height="56" alt="{{PROJECT_NAME}} icon" style="display:block; border:3px solid #000; background:#fff"></td>
+          <td style="padding-left:12px"><div style="font:11px Consolas,monospace; color:#111">PROJECT</div><div style="font:28px Impact,'Arial Black',Arial; color:#000; text-transform:uppercase">{{PROJECT_NAME}}</div></td>
+          <td align="right" style="font:11px Consolas,monospace; color:#111">{{UPDATE_DATE}}</td>
+        </tr></table>
+      </td></tr>
+      <tr><td style="padding:12px 16px 0">
+        <div style="font:15px Arial; color:#111">{{UPDATE_SUMMARY}}</div>
+        <div style="margin-top:8px; font:13px Consolas,monospace; color:#111">[██████████░░░░░░░░] {{PROGRESS_PERCENT}}%</div>
+        <div style="background:#000; height:2px; margin-top:6px"></div>
+        <div style="background:#00FFD1; height:6px; width:{{PROGRESS_PERCENT}}%; margin-top:-4px"></div>
+      </td></tr>
+      <tr><td style="padding:12px 16px 0">
+        <table role="presentation" width="100%" style="border:3px solid #000"><tr><td style="padding:10px; background:#00FFD1; font:700 12px Consolas,monospace">WORKSTREAMS</td></tr><tr><td style="padding:8px 12px">
+          <table role="presentation" width="100%">
+            <tr><td style="padding:6px 0; font:12px Consolas,monospace; color:#111">{{TRACK_1_LABEL}}</td><td align="right" style="padding:6px 0; font:12px Consolas,monospace; color:#111">{{TRACK_1_PERCENT}}%</td></tr>
+            <tr><td colspan="2" style="font:12px Consolas,monospace; color:#111">[████████░░░░░░░░░░] {{TRACK_1_PERCENT}}%</td></tr>
+            <tr><td style="padding:6px 0; font:12px Consolas,monospace; color:#111">{{TRACK_2_LABEL}}</td><td align="right" style="padding:6px 0; font:12px Consolas,monospace; color:#111">{{TRACK_2_PERCENT}}%</td></tr>
+            <tr><td colspan="2" style="font:12px Consolas,monospace; color:#111">[█████░░░░░░░░░░░░] {{TRACK_2_PERCENT}}%</td></tr>
+            <tr><td style="padding:6px 0; font:12px Consolas,monospace; color:#111">{{TRACK_3_LABEL}}</td><td align="right" style="padding:6px 0; font:12px Consolas,monospace; color:#111">{{TRACK_3_PERCENT}}%</td></tr>
+            <tr><td colspan="2" style="font:12px Consolas,monospace; color:#111">[██░░░░░░░░░░░░░░░] {{TRACK_3_PERCENT}}%</td></tr>
+          </table>
+        </td></tr></table>
+      </td></tr>
+      <tr><td style="padding:12px 16px 0">
+        <table role="presentation" width="100%" style="border:3px solid #000"><tr><td style="padding:10px; background:#FF2D9B; font:700 12px Consolas,monospace">ROUTE</td></tr><tr><td style="padding:12px">
+          <div style="background:#000; height:2px"></div>
+          <div style="background:#FF2D9B; height:6px; width:{{MILESTONE_TRACK_PERCENT}}%; margin-top:-4px"></div>
+          <ul style="padding-left:18px; margin:10px 0 0; font:13px/20px Consolas,monospace; color:#111">
+            <li>{{MILESTONE_1}} - {{MILESTONE_1_DATE}}</li>
+            <li>{{MILESTONE_2}} - {{MILESTONE_2_DATE}}</li>
+            <li>{{MILESTONE_3}} - {{MILESTONE_3_DATE}}</li>
+          </ul>
+        </td></tr></table>
+      </td></tr>
+      <tr><td style="padding:16px"><a href="{{CTA_URL}}" style="display:inline-block; min-width:260px; text-align:center; text-decoration:none; background:#00FFD1; color:#000; border:3px solid #000; font:800 14px/48px Arial; letter-spacing:1px">{{CTA_LABEL}}</a></td></tr>
+    </table>
+  </td></tr></table>
+</body>
+</html>
+
